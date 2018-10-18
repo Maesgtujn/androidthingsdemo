@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">AndroidThingsCameraDemo</string>
+    <string name="btn_take_picture">Take picture</string>
 </resources>

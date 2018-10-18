@@ -1,6 +1,7 @@
 package com.example.chenwei.androidthingscamerademo
 
 import android.app.Activity
+import android.content.ContentValues.TAG
 import android.content.Context
 import android.content.res.Configuration
 import android.graphics.*
@@ -10,7 +11,6 @@ import android.os.Handler
 import android.util.Log
 import android.util.Size
 import android.view.Surface
-import com.example.chenwei.androidthingscamerademo.Constants.Companion.TAG
 import java.util.*
 import kotlin.Comparator
 
@@ -360,8 +360,8 @@ class DemoCamera(private val mImageAvailableListener: ImageReader.OnImageAvailab
     companion object {
         const val MAX_IMAGES = 2
         // Max preview width and height is guaranteed by Camera2 API
-        const val MAX_PREVIEW_WIDTH = 1920
-        const val MAX_PREVIEW_HEIGHT = 1080
+        const val MAX_PREVIEW_WIDTH = 480   //  1920
+        const val MAX_PREVIEW_HEIGHT = 480     //  1080
 
         fun chooseOptimalSize(choices: Array<Size>, textureViewWidth: Int, textureViewHeight: Int,
                               maxWidth: Int, maxHeight: Int, aspectRatio: Size): Size {

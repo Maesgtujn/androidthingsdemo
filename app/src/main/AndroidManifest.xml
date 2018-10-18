@@ -9,7 +9,9 @@
         <uses-library android:name="com.google.android.things" />
 
         <activity android:name=".TakePictureActivity"></activity>
-        <activity android:name=".MainActivity">
+        <activity
+            android:name=".CameraPreviewActivity"
+            android:hardwareAccelerated="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -22,8 +24,9 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
-        <activity android:name=".CameraPreviewActivity"
-            android:hardwareAccelerated="true"></activity>
+        <!--<activity android:name=".CameraPreviewActivity"-->
+            <!--android:hardwareAccelerated="true"></activity>-->
+        <activity android:name=".MainActivity"></activity>
     </application>
 
 </manifest>
