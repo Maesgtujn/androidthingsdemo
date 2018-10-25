@@ -4,11 +4,12 @@
 
     <uses-permission android:name="com.google.android.things.permission.MANAGE_INPUT_DRIVERS" />
     <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera" />
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <application>
         <uses-library android:name="com.google.android.things" />
 
-        <activity android:name=".TakePictureActivity"></activity>
         <activity
             android:name=".CameraPreviewActivity"
             android:hardwareAccelerated="true">
@@ -24,9 +25,22 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
-        <!--<activity android:name=".CameraPreviewActivity"-->
-            <!--android:hardwareAccelerated="true"></activity>-->
-        <activity android:name=".MainActivity"></activity>
+        <!-- <activity android:name=".CameraPreviewActivity" -->
+        <!-- android:hardwareAccelerated="true"></activity> -->
+
+        <activity android:name=".TestActivity">
+            <!--<intent-filter>-->
+                <!--<action android:name="android.intent.action.MAIN" />-->
+
+                <!--<category android:name="android.intent.category.LAUNCHER" />-->
+            <!--</intent-filter>-->
+            <!--<intent-filter>-->
+                <!--<action android:name="android.intent.action.MAIN" />-->
+
+                <!--<category android:name="android.intent.category.IOT_LAUNCHER" />-->
+                <!--<category android:name="android.intent.category.DEFAULT" />-->
+            <!--</intent-filter>-->
+        </activity>
     </application>
 
 </manifest>

@@ -263,7 +263,7 @@ class DemoCamera(private val mImageAvailableListener: ImageReader.OnImageAvailab
         mCameraDevice?.close()
     }
 
-    fun tackPicture() {
+/*    fun tackPicture() {
         if (mCameraDevice == null || mImageReader == null) {
             Log.d(TAG, "Cannot capture image. Camera not initialized")
             return
@@ -295,9 +295,9 @@ class DemoCamera(private val mImageAvailableListener: ImageReader.OnImageAvailab
         } catch (ex: CameraAccessException) {
             Log.d(TAG, "Access exception while preparing picture", ex)
         }
-    }
+    }*/
 
-    private fun triggerImageCapture() {
+/*    private fun triggerImageCapture() {
         try {
             val captureBuilder = mCameraDevice!!.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE)
             captureBuilder.addTarget(mImageReader!!.surface)
@@ -311,7 +311,7 @@ class DemoCamera(private val mImageAvailableListener: ImageReader.OnImageAvailab
         } catch (ex: CameraAccessException) {
             Log.d(TAG, "Camera capture exception", ex)
         }
-    }
+    }*/
 
     private fun createPreviewSession() {
         if (mTextureView == null || mPreviewSize == null || mCameraDevice == null) {
@@ -360,8 +360,8 @@ class DemoCamera(private val mImageAvailableListener: ImageReader.OnImageAvailab
     companion object {
         const val MAX_IMAGES = 2
         // Max preview width and height is guaranteed by Camera2 API
-        const val MAX_PREVIEW_WIDTH = 480   //  1920
-        const val MAX_PREVIEW_HEIGHT = 480     //  1080
+        const val MAX_PREVIEW_WIDTH = 1920   //  1920
+        const val MAX_PREVIEW_HEIGHT = 1080     //  1080
 
         fun chooseOptimalSize(choices: Array<Size>, textureViewWidth: Int, textureViewHeight: Int,
                               maxWidth: Int, maxHeight: Int, aspectRatio: Size): Size {

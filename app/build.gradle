@@ -20,10 +20,11 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+    buildToolsVersion '27.0.3'
 }
 
 dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation 'com.android.support.constraint:constraint-layout:1.0.2'
     implementation 'com.android.support:appcompat-v7:26.1.0'
     testImplementation 'junit:junit:4.12'
@@ -32,4 +33,7 @@ dependencies {
     compileOnly 'com.google.android.things:androidthings:+'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
     implementation 'com.google.android.things.contrib:driver-button:0.5'
+    compile 'org.tensorflow:tensorflow-android:+'
+    implementation 'com.squareup.okhttp3:okhttp:3.7.0'
+
 }
