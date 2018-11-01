@@ -1,5 +1,6 @@
 package com.example.chenwei.androidthingscamerademo
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.ContentValues.TAG
 import android.content.Context
@@ -246,6 +247,7 @@ class DemoCamera(private val mImageAvailableListener: ImageReader.OnImageAvailab
         Log.d(TAG, "End configureTransform")
     }
 
+    @SuppressLint("MissingPermission")
     fun openCamera(context: Context) {
         val manager = context.getSystemService(Context.CAMERA_SERVICE) as CameraManager
         // Open the camera resource

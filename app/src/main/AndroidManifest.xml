@@ -8,27 +8,11 @@
     <uses-permission android:name="android.permission.INTERNET" />
 
     <application>
-        <uses-library android:name="com.google.android.things" />
+        <!--<uses-library android:name="com.google.android.things" />-->
 
         <activity
             android:name=".CameraPreviewActivity"
             android:hardwareAccelerated="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.IOT_LAUNCHER" />
-                <category android:name="android.intent.category.DEFAULT" />
-            </intent-filter>
-        </activity>
-        <!-- <activity android:name=".CameraPreviewActivity" -->
-        <!-- android:hardwareAccelerated="true"></activity> -->
-
-        <activity android:name=".TestActivity">
             <!--<intent-filter>-->
                 <!--<action android:name="android.intent.action.MAIN" />-->
 
@@ -41,6 +25,25 @@
                 <!--<category android:name="android.intent.category.DEFAULT" />-->
             <!--</intent-filter>-->
         </activity>
+        <!-- <activity android:name=".CameraPreviewActivity" -->
+        <!-- android:hardwareAccelerated="true"></activity> -->
+
+        <activity android:name=".TestActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.IOT_LAUNCHER" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
+        <activity android:name="com.google.zxing.activity.CaptureActivity"
+            android:theme="@style/Theme.AppCompat.DayNight.NoActionBar"/>
     </application>
 
 </manifest>

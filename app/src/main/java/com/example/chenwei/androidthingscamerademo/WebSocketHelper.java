@@ -4,7 +4,6 @@ package com.example.chenwei.androidthingscamerademo;
  * Created by williamsha on 2018/10/23.
  */
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.os.Handler;
@@ -15,9 +14,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 import java.util.concurrent.TimeUnit;
 
 import okhttp3.OkHttpClient;
@@ -25,7 +22,9 @@ import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.WebSocket;
 import okhttp3.WebSocketListener;
-import okio.ByteString;
+
+import static com.example.chenwei.androidthingscamerademo.StaticValues.ACTION_TYPE_identify_no_mtcnn;
+import static com.example.chenwei.androidthingscamerademo.StaticValues.ACTION_TYPE_validate;
 
 public class WebSocketHelper {
     private static String TAG = "WebSocketHelper";
@@ -66,37 +65,24 @@ public class WebSocketHelper {
                 try {
                     JSONObject jsonObject = new JSONObject(text);
                     Log.d(TAG, "onMessage:" + text);
+                    String action_type = jsonObject.getString("action_type");
+                    if (action_type.equals(ACTION_TYPE_identify_no_mtcnn)) {
+                        JSONArray jsonPersons = jsonObject.getJSONArray("data");
+                        Message msg = Message.obtain();
+                        msg.what = StaticValues.WHAT_FACENET;
+                        msg.obj = jsonPersons;
+                        mHandler.sendMessage(msg);
+                    }
+                    if (action_type.equals(ACTION_TYPE_validate)) {
+                        //{"action_type": "/validate", "data": {"accu": 0.9736842105263158, "succ": true, "wrong": [0.0, 0.0]}, "dur": 185261, "req_id": 1230770643302}
 
-                    JSONArray jsonPersons = jsonObject.getJSONArray("data");
 
-                    Message msg = Message.obtain();
-                    msg.what = 2;
-                    msg.obj = jsonPersons;
-                    mHandler.sendMessage(msg);
-
-
+                    }
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
 
                 Log.d("WEBSOCKET", "==onMessage:==" + text);
-            }
-
-
-            @Override
-            public void onMessage(WebSocket webSocket, ByteString bytes) {
-                super.onMessage(webSocket, bytes);
-
-                Log.d("WEBSOCKET", "==onMessagebytes:==" + bytes.toString());
-
-            }
-
-
-            @Override
-            public void onClosing(WebSocket webSocket, int code, String reason) {
-                super.onClosing(webSocket, code, reason);
-
-                Log.d("WEBSOCKET", "==onClosing:==" + reason + "#" + code);
             }
 
 
@@ -136,44 +122,30 @@ public class WebSocketHelper {
 
     }
 
-    public void sendReq(Vector<Box> boxes, Bitmap bitmap) {
-        List<Bitmap> marginBitmap = new ArrayList<>();
-            /*
-            获取经MTCNN人脸检测之后产生的边框位置坐标,并添加margin后将原始图片进行裁剪,输出marginBitmap;
-             */
-        try {
-
-            for (int i = 0; i < boxes.size(); i++) {
-                marginBitmap.add(Bitmap.createBitmap(bitmap,
-                        boxes.get(i).marginLeft(),
-                        boxes.get(i).marginTop(),
-                        Math.min(boxes.get(i).marginWidth(), bitmap.getWidth() - boxes.get(i).marginLeft()),
-                        Math.min(boxes.get(i).marginHeight(), bitmap.getHeight() - boxes.get(i).marginTop())));
-            }
-        } catch (ArrayIndexOutOfBoundsException e) {
-            Log.e(TAG, "[*]detect false: " + e);
-        }
-            /*
-            将marginBitmap转换为Base64编码并通过json对象传到后台;
-             */
+    public void sendReq(List<Bitmap> bitmaps, String actionType, String name) {
         try {
             JSONObject jsonObject = new JSONObject();
-            jsonObject.put("action_type", "/identify_no_mtcnn");
+//设定API通道
+            jsonObject.put("action_type", actionType);
+
+            if (name != null) {
+                jsonObject.put("name", name);
+
+            }
+//请求id用来匹配发送请求和返回信息
             jsonObject.put("req_id", System.currentTimeMillis());
-            JSONArray jsonArray=new JSONArray();
-            for (int i = 0; i < marginBitmap.size(); i++) {
-                String b64Img = Utils.bitmapToBase64(marginBitmap.get(i));
-
+//多个人脸数据按Base64编码为String
+            JSONArray jsonArray = new JSONArray();
+            for (int i = 0; i < bitmaps.size(); i++) {
+                String b64Img = Utils.bitmapToBase64(bitmaps.get(i));
                 jsonArray.put(b64Img);
-
-
             }
             jsonObject.put("data", jsonArray);
 
             String strJSONreq = jsonObject.toString();
             Log.d(TAG, "strJSONreq:" + strJSONreq);
-            Log.d(TAG, "marginBitmap.size()" + marginBitmap.size());
             try {
+//                返回数据将在mWebSocket.onMessage获得如果需要和请求匹配，则依据req_id即可
                 mWebSocket.send(strJSONreq);
             } catch (NullPointerException e) {
                 e.printStackTrace();
@@ -182,4 +154,5 @@ public class WebSocketHelper {
             e.printStackTrace();
         }
     }
+
 }
