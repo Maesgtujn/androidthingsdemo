@@ -13,7 +13,8 @@ import android.util.Log
 import android.view.TextureView
 import android.view.View
 import android.widget.TextView
-import com.example.chenwei.androidthingscamerademo.StaticValues.*
+import com.example.chenwei.androidthingscamerademo.StaticValues.ACTION_TYPE_identify_no_mtcnn
+import com.example.chenwei.androidthingscamerademo.StaticValues.ACTION_TYPE_validate
 import com.example.chenwei.androidthingscamerademo.Utils.getMarginBitmap
 import com.example.chenwei.androidthingscamerademo.Utils.readQRImage
 import com.google.zxing.activity.CaptureActivity
@@ -44,6 +45,7 @@ class CameraPreviewActivity : Activity() {
     private lateinit var mTvMsg: TextView
     private lateinit var mTvPerson: TextView
     private lateinit var mTvMode: TextView
+    private lateinit var mTvHint: TextView
 
 
     private lateinit var bitmap: Bitmap
@@ -51,19 +53,40 @@ class CameraPreviewActivity : Activity() {
     lateinit var mtcnn: MTCNN
     private var unknowCount: Int = 0
     private val UNKOWN_NAME = "Unknown"
-    private var detectorType = 1
+    private var detectorType = R.id.what_facenet_identify
     //1->MTCNN&FACENET , 2->QRCODE ,3->face reg
+    fun sendMessage(handler: Handler, what: Int, objects: Any?, arg1: Int, arg2: Int) {
+        val msg = Message.obtain()
+        msg.obj = objects
+        msg.what = what
+        msg.arg1 = arg1
+        msg.arg2 = arg2
+        handler.sendMessage(msg)
+    }
+
     fun initThread() {
 
         /**
         - 异步线程
          */
 
-
-        continua = true
         mCameraThread2 = Thread(object : Runnable {
+            var detectorType: Int = R.id.what_facenet_identify
+            var count: Int = 0
+            var frameCount = 0
+            val minFaceSize = 300
+
+
+            fun setdetectorType(type: Int) {
+                if (detectorType !== type) {
+                    detectorType = type
+                    count = 0
+                }
+            }
+
             override fun run() {
-                frameCount = 0
+                continua = true
+
                 t_start = System.currentTimeMillis()
                 var bm: Bitmap
                 var regbitmaps: ArrayList<Bitmap> = ArrayList<Bitmap>()
@@ -72,86 +95,83 @@ class CameraPreviewActivity : Activity() {
                     if (mTextureView !== null) {
                         Log.d(TAG, "processImage:start")
 
-                        bitmap = mTextureView.getBitmap()
+                        bitmap = mTextureView.bitmap
 
                         //Log.d("Thread",""+bitmap.height + " x "+bitmap.width)
                         bm = Utils.copyBitmap(bitmap)
                         //bm = Bitmap.createScaledBitmap(bitmap, 600, Math.round(((bitmap.height * 600 / bitmap.width).toDouble())).toInt(), false)
                         Log.d(TAG, "processImage: bitmap:" + bm.width + "," + bm.height)
+                        frameCount++
+                        var frameRate: Double = 1000.0 * frameCount.toFloat() / ((System.currentTimeMillis() - t_start))
+
+                        Log.d(TAG, "======== #" + frameCount + ",frameRate(f/s):" + frameRate)
                         try {
 
-                            if (detectorType == 2) {
-                                val rawResult = readQRImage(bm)
-                                Log.d(TAG, ">>>" + rawResult)
-                                if (rawResult !== null) {
-                                    qr_code  =rawResult
-                                    val msg = Message.obtain()
-
-                                    msg.obj = rawResult
-                                    msg.what = StaticValues.WHAT_QRCODE
-
-                                    mCameraHandler2.sendMessage(msg)
-
+                            when (detectorType) {
+                                R.id.what_qrcode -> {
+                                    if (count == 0) {
+                                        sendMessage(mCameraHandler2, R.id.what_qrcode, null, R.id.state_start, count)
+                                    }
+                                    val rawResult = readQRImage(bm)
+                                    count++
+                                    if (rawResult !== null) {
+                                        qr_code = rawResult
+                                        Log.d(TAG, ">>>qr_code:$qr_code")
+                                        sendMessage(mCameraHandler2, R.id.what_qrcode, rawResult, R.id.state_succ, count)
+                                        setdetectorType(R.id.what_facenet_regadd)
+                                    } else {
+                                        Log.d(TAG, ">>>qr_code:null")
+                                        if (count < 20) {
+                                            sendMessage(mCameraHandler2, R.id.what_qrcode, null, R.id.state_progress, count)
+                                        } else {
+                                            sendMessage(mCameraHandler2, R.id.what_qrcode, null, R.id.state_fail, count)
+                                            setdetectorType(R.id.what_facenet_identify)
+                                        }
+                                    }
                                 }
-                                Log.d(TAG, rawResult.toString())
-                            }
-                            if(detectorType!==3){
-                                regbitmaps.clear()
-                            }
-                            if (detectorType == 1) qr_code=""
-                            if (detectorType == 1 || detectorType == 3) {
 
-                                val boxes = mtcnn.detectFaces(bm, 300)
-
-                                Log.d(TAG, "======== box:" + boxes.size)
-
-                                frameCount++
-                                var frameRate: Double = 1000.0 * frameCount.toFloat() / ((System.currentTimeMillis() - t_start))
-
-                                Log.d(TAG, "======== #" + frameCount + ",frameRate(f/s):" + frameRate)
-                                val msg = Message.obtain()
-
-                                msg.obj = boxes
-                                msg.what = StaticValues.WHAT_MTCNN
-                                msg.arg1 = frameCount
-                                msg.arg2 = (frameRate * 1000).toInt()
-
-                                mCameraHandler2.sendMessage(msg)
-
-                                if (boxes.size > 0 && (detectorType == 1)) {
-                                    val bitmaps = ArrayList<Bitmap>()
-                                    /*
-                                    获取经MTCNN人脸检测之后产生的边框位置坐标,并添加margin后将原始图片进行裁剪,输出marginBitmap;
-                                     */
-                                    try {
+                                R.id.what_facenet_identify -> {
+                                    val boxes = mtcnn.detectFaces(bm, minFaceSize)
+                                    sendMessage(mCameraHandler2, R.id.what_mtcnn, boxes, R.id.state_succ, boxes.size)
+                                    if (boxes.size > 0) {
+                                        val bitmaps = ArrayList<Bitmap>()
+                                        //获取经MTCNN人脸检测之后产生的边框位置坐标,并添加margin后将原始图片进行裁剪,输出marginBitmap;
                                         for (i in boxes.indices) {
                                             bitmaps.add(getMarginBitmap(boxes[i], bm))
                                         }
-                                        wshelper.sendReq(bitmaps, ACTION_TYPE_identify_no_mtcnn,null)
-                                    } catch (e: ArrayIndexOutOfBoundsException) {
-                                        Log.e(TAG, "[*]detect false: $e")
+                                        sendMessage(mCameraHandler2, R.id.what_facenet_identify, boxes, R.id.state_start, boxes.size)
+                                        wshelper.sendReq(bitmaps, ACTION_TYPE_identify_no_mtcnn, null)
+                                        //what_facenet_identify  state_succ,在wshelper的onMessage中主动发送给 mCameraHandler2
                                     }
                                 }
-
-                                if (boxes.size == 1 && (detectorType == 3)) {
-                                    //wshelper.sendReq(boxes, bm, ACTION_TYPE_add)
-                                    regbitmaps.add(getMarginBitmap(boxes[0], bm))
-                                    if(regbitmaps.size==9){
-                                        wshelper.sendReq(regbitmaps, ACTION_TYPE_validate,qr_code)
-
+                                R.id.what_facenet_regadd -> {
+                                    if (count == 0) {
+                                        sendMessage(mCameraHandler2, R.id.what_facenet_regadd, null, R.id.state_start, count)
+                                        regbitmaps.clear()
                                     }
+                                    val boxes = mtcnn.detectFaces(bm, minFaceSize)
+                                    sendMessage(mCameraHandler2, R.id.what_mtcnn, boxes, R.id.state_succ, boxes.size)
+                                    if (boxes.size == 1) {
+                                        count++
+                                        regbitmaps.add(getMarginBitmap(boxes[0], bm))
+                                        sendMessage(mCameraHandler2, R.id.what_facenet_regadd, null, R.id.state_progress, count)
 
+                                        if (regbitmaps.size == 9) {
+                                            wshelper.sendReq(regbitmaps, ACTION_TYPE_validate, qr_code)
+
+                                        }
+                                    }
                                 }
-
-
+                                else -> println("default")
                             }
+
                         } catch (e: Exception) {
                             Log.e(TAG, "[*]detect false:$e")
                         } finally {
                         }
 
                     }
-                    Thread.sleep(500)
+                    Thread.sleep(50)
 
                 }
             }
@@ -168,7 +188,8 @@ class CameraPreviewActivity : Activity() {
         mDraw = findViewById(R.id.draw)
         mTvMsg = findViewById(R.id.tv_msg)
         mTvPerson = findViewById(R.id.tv_person)
-        mTvMode = findViewById(R.id.tvMode)
+        mTvMode = findViewById(R.id.tv_mode)
+        mTvHint = findViewById(R.id.tv_hint)
 
 
         mTvMsg.setOnClickListener(View.OnClickListener {
@@ -178,62 +199,84 @@ class CameraPreviewActivity : Activity() {
         })
         mtcnn = MTCNN(assets)
 
-
-        val handler: Handler = Handler()
         mCameraHandler2 = object : Handler() {
             override fun handleMessage(msg: Message?) {
-                when (msg?.what) {
+                val state = msg!!.arg1
+                val count = msg.arg2
+                when (msg.what) {
                 //msg.let {
                     StaticValues.WHAT_TEXT -> {
-                        mTvMsg.setText(msg.obj as String)
+                        mTvMsg.text = msg.obj as String
 
                     }
-                    StaticValues.WHAT_QRCODE -> {
-                        mTvPerson.setText(msg.obj as String)
-                        detectorType = 3
-                        mTvMode.setText("FACE_REG")
 
-                    }
-                    StaticValues.WHAT_MTCNN -> {
-                        val boxes: Vector<Box> = msg?.obj as Vector<Box>
-                        if (msg?.arg1 % 10 == 0) {
-                            val textmsg = String.format("#%d @ %.2f (fps)", msg?.arg1, msg?.arg2.toFloat() / 1000)
-                            handler.postDelayed(Runnable { mTvMsg.setText(textmsg) }, 100)
+                    R.id.what_qrcode -> {
+                        when (state) {
+                            R.id.state_succ ->
+                                mTvMsg.text = msg.obj as String
+                            R.id.state_start -> {
+                                //画扫扫描框
+                                mTvHint.setText(R.string.qrcode_start)
+                            }
+                            R.id.state_fail -> {
+                                mTvHint.setText(R.string.qrcode_fail)
+                            }
+                            R.id.state_progress -> {
+                                mTvMsg.setText(R.string.qrcode_progress)
+                            }
                         }
 
+                        detectorType = R.id.what_facenet_identify
 
-                        //
-                        mDraw.draw(boxes)
-                        if (boxes.size == 0) {
-                            mTvPerson.setText("")
-                        }
                     }
-                    StaticValues.WHAT_FACENET -> {
+                    R.id.what_mtcnn -> {
+                        if (state == R.id.state_succ) {
+                            val boxes: Vector<Box> = msg.obj as Vector<Box>
+                            mDraw.draw(boxes)
+                        }
+
+                    }
+                    R.id.what_facenet_identify -> {
                         try {
-                            val jsonPersons: JSONArray = msg?.obj as JSONArray
-                            var text: String = ""
-                            for (i in 1..jsonPersons.length()) {
-                                val jsonPerson: JSONObject = jsonPersons.get(i - 1) as JSONObject
-                                val name = jsonPerson.getString("name")
-                                if (name == UNKOWN_NAME) {
-                                    unknowCount++
-                                } else {
+                            when (state) {
+
+                                R.id.state_succ -> {
+                                    mTvHint.setText(R.string.facenet_identify_succ)
+
+                                    val jsonPersons: JSONArray = msg.obj as JSONArray
+                                    var text: String = ""
+                                    for (i in 1..jsonPersons.length()) {
+                                        val jsonPerson: JSONObject = jsonPersons.get(i - 1) as JSONObject
+                                        val name = jsonPerson.getString("name")
+                                        if (name == UNKOWN_NAME) {
+                                            unknowCount++
+                                        } else {
+                                            unknowCount = 0
+                                        }
+
+                                        text = text + String.format("%n %s  @ %.2f", name, 100 * jsonPerson.getDouble("prob")) + "%"
+                                    }
+                                    mTvPerson.text = text
+                                    if (unknowCount > 4) {
+mCameraThread2.setde                                    }
+                                }
+                                R.id.state_start -> {
                                     unknowCount = 0
+                                    mTvHint.setText(R.string.facenet_identify_start)
+                                }
+                                R.id.state_fail -> {
+                                    mTvHint.setText(R.string.facenet_identify_fail)
+
+                                }
+                                R.id.state_progress -> {
+                                    mTvMsg.text = "..."
                                 }
 
-
-                                text = text + String.format("%n %s  @ %.2f", name, 100 * jsonPerson.getDouble("prob")) + "%"
-
                             }
 
-                            Log.d(TAG, "jsonPersons:" + jsonPersons.toString())
-                            mTvPerson.setText(text)
-                            if (unknowCount > 4) {
-                                detectorType = 2
-                                mTvMode.setText("SCAN_QRCODE")
-                            }
+
                         } catch (e: Exception) {
-                            e.printStackTrace();
+                            e.printStackTrace()
                         }
                     }
                     else -> {
@@ -287,7 +330,6 @@ class CameraPreviewActivity : Activity() {
 
         override fun onSurfaceTextureUpdated(surface: SurfaceTexture?) {
             //Log.d(TAG, "onSurfaceTextureUpdated")
-            //todo 尝试此处获取图像送到MTCNN
             //var bitmap: Bitmap = mTextureView.getBitmap()
             //Log.d("onSurfaceTextureUpdated",""+bitmap.height)
 
@@ -310,14 +352,11 @@ class CameraPreviewActivity : Activity() {
     private fun startBackgroundThread() {
         mCameraThread = HandlerThread("CameraBackground")
         mCameraThread.start()
-        mCameraHandler = object : Handler(mCameraThread.looper){
+        mCameraHandler = object : Handler(mCameraThread.looper) {
             override fun handleMessage(msg: Message) {
 
-                Log.d("mCameraHandler","+++>>>"+msg.toString())
-                //update();//模拟数据更新
+                Log.d("mCameraHandler", "+++>>>" + msg.toString())
 
-                //if (isUpdateInfo)
-                //    mThreadHandler.sendEmptyMessage(MSG_UPDATE_INFO);
             }
         }
 
@@ -352,7 +391,7 @@ class CameraPreviewActivity : Activity() {
 
             mCameraThread.join()
         } catch (ex: InterruptedException) {
-            Log.d("stopBackgroundThread","InterruptedException")
+            Log.d("stopBackgroundThread", "InterruptedException")
             ex.printStackTrace()
         }
     }

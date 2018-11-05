@@ -5,4 +5,15 @@
     <string name="dencode_qrcode">扫描二维码</string>
     <string name="code_text">请输入生成二维码的文本信息</string>
     <string name="qrcodetext">这里显示扫描结果</string>
+
+    <string name="qrcode_start">请将员工卡二维码放入扫描框中</string>
+    <string name="qrcode_succ">二维码扫描成功</string>
+    <string name="qrcode_fail">二维码多次扫描失败</string>
+    <string name="qrcode_progress"> 已尝试$count+次</string>
+
+    <string name="facenet_identify_start">人脸识别中</string>
+    <string name="facenet_identify_succ">人脸识别成功</string>
+    <string name="facenet_identify_fail">人脸识别失败</string>
+    <string name="facenet_identify_progress"> 已尝试$count+次</string>
+
 </resources>

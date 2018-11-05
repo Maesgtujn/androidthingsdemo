@@ -1,12 +1,12 @@
 package com.example.chenwei.androidthingscamerademo
 
+import android.os.Message
 import android.support.test.InstrumentationRegistry
 import android.support.test.runner.AndroidJUnit4
-
+import android.util.Log
+import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.junit.runner.RunWith
-
-import org.junit.Assert.*
 
 /**
  * Instrumented test, which will execute on an Android device.
@@ -19,6 +19,11 @@ class ExampleInstrumentedTest {
     fun useAppContext() {
         // Context of the app under test.
         val appContext = InstrumentationRegistry.getTargetContext()
+
+        val msg: Message = Message.obtain()
+       Log.d("TAG+++", ""+msg.arg1)
+
         assertEquals("com.example.chenwei.androidthingscamerademo", appContext.packageName)
+
     }
 }
