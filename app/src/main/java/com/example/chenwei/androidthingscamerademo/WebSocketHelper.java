@@ -25,6 +25,7 @@ import okhttp3.WebSocketListener;
 
 import static com.example.chenwei.androidthingscamerademo.StaticValues.ACTION_TYPE_identify_no_mtcnn;
 import static com.example.chenwei.androidthingscamerademo.StaticValues.ACTION_TYPE_validate;
+import static com.example.chenwei.androidthingscamerademo.Utils.sendMessage;
 
 public class WebSocketHelper {
     private static String TAG = "WebSocketHelper";
@@ -50,6 +51,7 @@ public class WebSocketHelper {
                 .url(HOST_URL)
                 .build();
         webSocketListener = new WebSocketListener() {
+            JSONObject jsonObject;
 
             @Override
             public void onOpen(WebSocket webSocket, Response response) {
@@ -63,7 +65,7 @@ public class WebSocketHelper {
             public void onMessage(WebSocket webSocket, String text) {
                 super.onMessage(webSocket, text);
                 try {
-                    JSONObject jsonObject = new JSONObject(text);
+                    jsonObject = new JSONObject(text);
                     Log.d(TAG, "onMessage:" + text);
                     String action_type = jsonObject.getString("action_type");
                     if (action_type.equals(ACTION_TYPE_identify_no_mtcnn)) {
@@ -72,9 +74,19 @@ public class WebSocketHelper {
                         msg.what = StaticValues.WHAT_FACENET;
                         msg.obj = jsonPersons;
                         mHandler.sendMessage(msg);
+                        sendMessage(mHandler, R.id.what_facenet_identify, jsonPersons, R.id.state_succ, jsonPersons.length());
+
+
                     }
                     if (action_type.equals(ACTION_TYPE_validate)) {
                         //{"action_type": "/validate", "data": {"accu": 0.9736842105263158, "succ": true, "wrong": [0.0, 0.0]}, "dur": 185261, "req_id": 1230770643302}
+                        //{"action_type": "/validate", "dur": 987489, "data": {"accu": 0.9741935483870968, "wrong": [0.3333333333333333, 0.0], "succ": false}, "req_id": 1230786685456}
+                        JSONObject jsdata = jsonObject.getJSONObject("data");
+                        boolean succ = jsdata.getBoolean("succ");
+                        if (succ)
+                            sendMessage(mHandler, R.id.what_facenet_validate, jsdata, R.id.state_succ, 1);
+                        else
+                            sendMessage(mHandler, R.id.what_facenet_validate, jsdata, R.id.state_fail, 0);
 
 
                     }
