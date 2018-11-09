@@ -3,18 +3,17 @@ package com.example.chenwei.androidthingscamerademo;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.os.Handler;
-import android.os.Message;
 import android.util.Log;
 import android.view.TextureView;
 
 import java.util.ArrayList;
-import java.util.Objects;
 import java.util.Vector;
 
 import static com.example.chenwei.androidthingscamerademo.StaticValues.ACTION_TYPE_identify_no_mtcnn;
 import static com.example.chenwei.androidthingscamerademo.StaticValues.ACTION_TYPE_validate;
 import static com.example.chenwei.androidthingscamerademo.Utils.getMarginBitmap;
 import static com.example.chenwei.androidthingscamerademo.Utils.readQRImage;
+import static com.example.chenwei.androidthingscamerademo.Utils.sendMessage;
 
 /**
  * Created by williamsha on 2018/11/5.
@@ -22,17 +21,16 @@ import static com.example.chenwei.androidthingscamerademo.Utils.readQRImage;
 
 public class CaptureThread extends Thread {
     static String TAG = "CaptureThread";
+    boolean continua = false;
     private Handler mHandler;
     private Context mContext;
     private WebSocketHelper wshelper;
     private MTCNN mtcnn;
-    private int detectorType =R.id.what_facenet_identify;
-
+    private int detectorType;
     private int count = 0;
     private int frameCount = 0;
     private int minFaceSize = 300;
     private TextureView mTextureView;
-    boolean continua = false;
 
     public CaptureThread(Context context, Handler handler, TextureView textureView, WebSocketHelper wshelper) {
         this.mContext = context;
@@ -40,23 +38,18 @@ public class CaptureThread extends Thread {
         this.mTextureView = textureView;
         this.wshelper = wshelper;
         mtcnn = new MTCNN(context.getAssets());
-
+        detectorType = R.id.what_facenet_identify;
     }
 
-    void sendMessage(Handler handler, int what, Object object, int arg1, int arg2) {
-        Message msg = Message.obtain();
-        msg.obj = object;
-        msg.what = what;
-        msg.arg1 = arg1;
-        msg.arg2 = arg2;
-        handler.sendMessage(msg);
-    }
 
     public void setdetectorType(int type) {
         if (detectorType != type) {
             detectorType = type;
             count = 0;
         }
+    }
+    public int getdetectorType(){
+        return detectorType;
     }
 
     @Override
@@ -71,7 +64,7 @@ public class CaptureThread extends Thread {
         ArrayList<Bitmap> regBitmaps = new ArrayList<>();
         String qr_code = "";
         while (continua) {
-            if (mTextureView != null) {
+            if (mTextureView != null && detectorType!=R.id.what_idle) {
                 Log.d(TAG, "processImage:start");
 
                 bitmap = mTextureView.getBitmap();
@@ -100,7 +93,7 @@ public class CaptureThread extends Thread {
                                 setdetectorType(R.id.what_facenet_regadd);
                             } else {
                                 Log.d(TAG, ">>>qr_code:null");
-                                if (count < 20) {
+                                if (count < 40) {
                                     sendMessage(mHandler, R.id.what_qrcode, null, R.id.state_progress, count);
                                 } else {
                                     sendMessage(mHandler, R.id.what_qrcode, null, R.id.state_fail, count);
@@ -110,6 +103,8 @@ public class CaptureThread extends Thread {
                             break;
 
                         case R.id.what_facenet_identify:
+                            sendMessage(mHandler, R.id.what_mtcnn, null, R.id.state_start, 0);
+
                             boxes = mtcnn.detectFaces(bm, minFaceSize);
                             sendMessage(mHandler, R.id.what_mtcnn, boxes, R.id.state_succ, boxes.size());
                             if (boxes.size() > 0) {
@@ -136,6 +131,8 @@ public class CaptureThread extends Thread {
                                 sendMessage(mHandler, R.id.what_facenet_regadd, null, R.id.state_progress, count);
 
                                 if (regBitmaps.size() == 9) {
+                                    sendMessage(mHandler, R.id.what_facenet_validate ,null, R.id.state_start, regBitmaps.size());
+
                                     wshelper.sendReq(regBitmaps, ACTION_TYPE_validate, qr_code);
 
                                 }
@@ -144,7 +141,7 @@ public class CaptureThread extends Thread {
                         default:
                             Log.d(TAG, "default");
                     }
-                    Thread.sleep(50);
+                    Thread.sleep(100);
 
                 } catch (Exception e) {
                     Log.e(TAG, "[*]detect false:$e");

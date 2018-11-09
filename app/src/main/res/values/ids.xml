@@ -33,6 +33,8 @@
     <item name="what_facenet_validate" type="id" />
     <item name="what_facenet_regadd" type="id" />
     <item name="what_qrcode" type="id" />
+    <item name="what_idle" type="id" />
+
 
     <item name="state_start" type="id" />
     <item name="state_succ" type="id" />

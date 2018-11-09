@@ -197,6 +197,14 @@ public class Utils {
 
 
     }
+    public static  void sendMessage(Handler handler, int what, Object object, int arg1, int arg2) {
+        Message msg = Message.obtain();
+        msg.obj = object;
+        msg.what = what;
+        msg.arg1 = arg1;
+        msg.arg2 = arg2;
+        handler.sendMessage(msg);
+    }
 
     public static void faceDetector(Bitmap bmp, int mac_face) {
 

@@ -1,6 +1,8 @@
 package com.example.chenwei.androidthingscamerademo
 
 import android.app.Activity
+import android.app.ProgressDialog
+import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.SurfaceTexture
@@ -13,10 +15,7 @@ import android.util.Log
 import android.view.TextureView
 import android.view.View
 import android.widget.TextView
-import com.example.chenwei.androidthingscamerademo.StaticValues.ACTION_TYPE_identify_no_mtcnn
-import com.example.chenwei.androidthingscamerademo.StaticValues.ACTION_TYPE_validate
-import com.example.chenwei.androidthingscamerademo.Utils.getMarginBitmap
-import com.example.chenwei.androidthingscamerademo.Utils.readQRImage
+import android.widget.Toast
 import com.google.zxing.activity.CaptureActivity
 import org.json.JSONArray
 import org.json.JSONObject
@@ -31,7 +30,7 @@ class CameraPreviewActivity : Activity() {
     private lateinit var mCameraThread: HandlerThread
 
     private lateinit var mCameraHandler2: Handler
-    private lateinit var mCameraThread2: Thread
+    private lateinit var mCameraThread2: CaptureThread
     private var continua: Boolean = false
     private var frameCount: Int = 0
     private var t_start = System.currentTimeMillis()
@@ -53,134 +52,21 @@ class CameraPreviewActivity : Activity() {
     lateinit var mtcnn: MTCNN
     private var unknowCount: Int = 0
     private val UNKOWN_NAME = "Unknown"
-    private var detectorType = R.id.what_facenet_identify
     //1->MTCNN&FACENET , 2->QRCODE ,3->face reg
-    fun sendMessage(handler: Handler, what: Int, objects: Any?, arg1: Int, arg2: Int) {
-        val msg = Message.obtain()
-        msg.obj = objects
-        msg.what = what
-        msg.arg1 = arg1
-        msg.arg2 = arg2
-        handler.sendMessage(msg)
-    }
 
-    fun initThread() {
 
+    fun initThread(context: Context) {
+        //mCameraThread2.run()
         /**
         - 异步线程
          */
+        mCameraThread2 = CaptureThread(context, mCameraHandler2, mTextureView, wshelper)
 
-        mCameraThread2 = Thread(object : Runnable {
-            var detectorType: Int = R.id.what_facenet_identify
-            var count: Int = 0
-            var frameCount = 0
-            val minFaceSize = 300
-
-
-            fun setdetectorType(type: Int) {
-                if (detectorType !== type) {
-                    detectorType = type
-                    count = 0
-                }
-            }
-
-            override fun run() {
-                continua = true
-
-                t_start = System.currentTimeMillis()
-                var bm: Bitmap
-                var regbitmaps: ArrayList<Bitmap> = ArrayList<Bitmap>()
-                var qr_code = ""
-                while (continua) {
-                    if (mTextureView !== null) {
-                        Log.d(TAG, "processImage:start")
-
-                        bitmap = mTextureView.bitmap
-
-                        //Log.d("Thread",""+bitmap.height + " x "+bitmap.width)
-                        bm = Utils.copyBitmap(bitmap)
-                        //bm = Bitmap.createScaledBitmap(bitmap, 600, Math.round(((bitmap.height * 600 / bitmap.width).toDouble())).toInt(), false)
-                        Log.d(TAG, "processImage: bitmap:" + bm.width + "," + bm.height)
-                        frameCount++
-                        var frameRate: Double = 1000.0 * frameCount.toFloat() / ((System.currentTimeMillis() - t_start))
-
-                        Log.d(TAG, "======== #" + frameCount + ",frameRate(f/s):" + frameRate)
-                        try {
-
-                            when (detectorType) {
-                                R.id.what_qrcode -> {
-                                    if (count == 0) {
-                                        sendMessage(mCameraHandler2, R.id.what_qrcode, null, R.id.state_start, count)
-                                    }
-                                    val rawResult = readQRImage(bm)
-                                    count++
-                                    if (rawResult !== null) {
-                                        qr_code = rawResult
-                                        Log.d(TAG, ">>>qr_code:$qr_code")
-                                        sendMessage(mCameraHandler2, R.id.what_qrcode, rawResult, R.id.state_succ, count)
-                                        setdetectorType(R.id.what_facenet_regadd)
-                                    } else {
-                                        Log.d(TAG, ">>>qr_code:null")
-                                        if (count < 20) {
-                                            sendMessage(mCameraHandler2, R.id.what_qrcode, null, R.id.state_progress, count)
-                                        } else {
-                                            sendMessage(mCameraHandler2, R.id.what_qrcode, null, R.id.state_fail, count)
-                                            setdetectorType(R.id.what_facenet_identify)
-                                        }
-                                    }
-                                }
-
-                                R.id.what_facenet_identify -> {
-                                    val boxes = mtcnn.detectFaces(bm, minFaceSize)
-                                    sendMessage(mCameraHandler2, R.id.what_mtcnn, boxes, R.id.state_succ, boxes.size)
-                                    if (boxes.size > 0) {
-                                        val bitmaps = ArrayList<Bitmap>()
-                                        //获取经MTCNN人脸检测之后产生的边框位置坐标,并添加margin后将原始图片进行裁剪,输出marginBitmap;
-                                        for (i in boxes.indices) {
-                                            bitmaps.add(getMarginBitmap(boxes[i], bm))
-                                        }
-                                        sendMessage(mCameraHandler2, R.id.what_facenet_identify, boxes, R.id.state_start, boxes.size)
-                                        wshelper.sendReq(bitmaps, ACTION_TYPE_identify_no_mtcnn, null)
-                                        //what_facenet_identify  state_succ,在wshelper的onMessage中主动发送给 mCameraHandler2
-                                    }
-                                }
-                                R.id.what_facenet_regadd -> {
-                                    if (count == 0) {
-                                        sendMessage(mCameraHandler2, R.id.what_facenet_regadd, null, R.id.state_start, count)
-                                        regbitmaps.clear()
-                                    }
-                                    val boxes = mtcnn.detectFaces(bm, minFaceSize)
-                                    sendMessage(mCameraHandler2, R.id.what_mtcnn, boxes, R.id.state_succ, boxes.size)
-                                    if (boxes.size == 1) {
-                                        count++
-                                        regbitmaps.add(getMarginBitmap(boxes[0], bm))
-                                        sendMessage(mCameraHandler2, R.id.what_facenet_regadd, null, R.id.state_progress, count)
-
-                                        if (regbitmaps.size == 9) {
-                                            wshelper.sendReq(regbitmaps, ACTION_TYPE_validate, qr_code)
-
-                                        }
-                                    }
-                                }
-                                else -> println("default")
-                            }
-
-                        } catch (e: Exception) {
-                            Log.e(TAG, "[*]detect false:$e")
-                        } finally {
-                        }
-
-                    }
-                    Thread.sleep(50)
-
-                }
-            }
-        })
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
 
-
+        var pd: ProgressDialog = ProgressDialog(this@CameraPreviewActivity)
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_camera_preview)
 
@@ -197,36 +83,46 @@ class CameraPreviewActivity : Activity() {
             val intent = Intent(it.context, CaptureActivity::class.java)
             startActivity(intent)
         })
-        mtcnn = MTCNN(assets)
+        //mtcnn = MTCNN(assets)
 
         mCameraHandler2 = object : Handler() {
             override fun handleMessage(msg: Message?) {
                 val state = msg!!.arg1
                 val count = msg.arg2
                 when (msg.what) {
-                //msg.let {
-                    StaticValues.WHAT_TEXT -> {
-                        mTvMsg.text = msg.obj as String
-
-                    }
 
                     R.id.what_qrcode -> {
                         when (state) {
-                            R.id.state_succ ->
-                                mTvMsg.text = msg.obj as String
+
                             R.id.state_start -> {
                                 //画扫扫描框
+
+                                mDraw.drawRectQR()
+
                                 mTvHint.setText(R.string.qrcode_start)
+                                mTvMsg.setText("")
+                                mTvPerson.setText("")
+                                mTvMode.setText("qrcode")
+
+                            }
+                            R.id.state_succ -> {
+                                mTvHint.setText(R.string.qrcode_succ)
+                                mTvMsg.text = msg.obj as String
+                                mCameraThread2.setdetectorType(R.id.what_facenet_regadd)
+
                             }
                             R.id.state_fail -> {
                                 mTvHint.setText(R.string.qrcode_fail)
+                                mCameraThread2.setdetectorType(R.id.what_facenet_identify)
+                                mTvMsg.setText("")
+
                             }
-                            R.id.state_progress -> {
-                                mTvMsg.setText(R.string.qrcode_progress)
-                            }
+
+                            R.id.state_progress -> mTvMsg.setText(getString(R.string.qrcode_progress) + count)
+
                         }
 
-                        detectorType = R.id.what_facenet_identify
+                        //detectorType = R.id.what_facenet_identify
 
                     }
                     R.id.what_mtcnn -> {
@@ -238,47 +134,110 @@ class CameraPreviewActivity : Activity() {
                     }
                     R.id.what_facenet_identify -> {
                         try {
-                            when (state) {
+                            if (mCameraThread2.getdetectorType() == R.id.what_facenet_identify)
+                                when (state) {
+                                    R.id.state_start -> {
+                                        //unknowCount = 0
+                                        mTvHint.setText(R.string.facenet_identify_start)
+                                        mTvMode.setText("facenet_identify")
 
-                                R.id.state_succ -> {
-                                    mTvHint.setText(R.string.facenet_identify_succ)
+                                        //Toast.makeText(this@CameraPreviewActivity, R.string.facenet_identify_start, Toast.LENGTH_SHORT).show()
 
-                                    val jsonPersons: JSONArray = msg.obj as JSONArray
-                                    var text: String = ""
-                                    for (i in 1..jsonPersons.length()) {
-                                        val jsonPerson: JSONObject = jsonPersons.get(i - 1) as JSONObject
-                                        val name = jsonPerson.getString("name")
-                                        if (name == UNKOWN_NAME) {
-                                            unknowCount++
-                                        } else {
-                                            unknowCount = 0
+
+                                    }
+                                    R.id.state_succ -> {
+                                        mTvHint.setText(R.string.facenet_identify_succ)
+                                        val jsonPersons: JSONArray = msg.obj as JSONArray
+                                        var text = ""
+                                        for (i in 1..jsonPersons.length()) {
+                                            val jsonPerson: JSONObject = jsonPersons.get(i - 1) as JSONObject
+                                            val name = jsonPerson.getString("name")
+                                            if (name == UNKOWN_NAME) {
+                                                unknowCount++
+                                            } else {
+                                                unknowCount = 0
+                                            }
+
+                                            text = text + String.format("%n %s  @ %.2f", name, 100 * jsonPerson.getDouble("prob")) + "%"
                                         }
 
-                                        text = text + String.format("%n %s  @ %.2f", name, 100 * jsonPerson.getDouble("prob")) + "%"
+                                        mTvPerson.text = text
+                                        if (unknowCount > 0)
+                                            mTvMsg.setText("Unknow:" + unknowCount)
+                                        else
+                                            mTvMsg.setText("")
+                                        if (unknowCount > 4) {
+                                            unknowCount = 0
+                                            mCameraThread2.setdetectorType(R.id.what_qrcode)
+                                        }
                                     }
-                                    mTvPerson.text = text
-                                    if (unknowCount > 4) {
-mCameraThread2.setde                                    }
-                                }
-                                R.id.state_start -> {
-                                    unknowCount = 0
-                                    mTvHint.setText(R.string.facenet_identify_start)
-                                }
-                                R.id.state_fail -> {
-                                    mTvHint.setText(R.string.facenet_identify_fail)
 
+                                    R.id.state_fail -> {
+                                        mTvHint.setText(R.string.facenet_identify_fail)
+                                    }
+                                    R.id.state_progress -> {
+                                        mTvMsg.text = "..."
+                                    }
                                 }
-                                R.id.state_progress -> {
-                                    mTvMsg.text = "..."
-                                }
-
-                            }
-
 
                         } catch (e: Exception) {
                             e.printStackTrace()
                         }
                     }
+
+                    R.id.what_facenet_regadd -> {
+                        when (state) {
+                            R.id.state_start -> {
+                                mTvHint.setText(R.string.facenet_add_start)
+                                mTvMode.setText("facenet_regadd")
+                                mTvMsg.setText("")
+                                mTvPerson.setText("")
+
+                            }
+                            R.id.state_succ -> {
+                                mTvHint.setText(R.string.facenet_add_succ)
+
+                            }
+
+                            R.id.state_fail -> {
+                            }
+                            R.id.state_progress -> mTvMsg.setText("已采集图像：" + count)
+                        }
+
+                    }
+                    R.id.what_facenet_validate -> {
+                        when (state) {
+
+                            R.id.state_start -> {
+                                mCameraThread2.setdetectorType(R.id.what_idle)
+                                mTvMode.setText("facenet_validate")
+                                mTvMsg.setText("")
+                                mTvPerson.setText("")
+                                pd = ProgressDialog.show(this@CameraPreviewActivity, "facenet_validate", getString(R.string.facenet_validate_start));
+                                mTvHint.setText(R.string.facenet_validate_start)
+                            }
+                            R.id.state_succ -> {
+                                pd.dismiss()
+                                mTvHint.setText(R.string.facenet_validate_succ)
+                                mCameraThread2.setdetectorType(R.id.what_facenet_identify)
+                                Toast.makeText(this@CameraPreviewActivity, "注册成功", Toast.LENGTH_LONG).show()
+
+                            }
+                            R.id.state_fail -> {
+                                pd.dismiss()
+                                mTvHint.setText(R.string.facenet_validate_fail)
+                                mCameraThread2.setdetectorType(R.id.what_facenet_identify)
+                                Toast.makeText(this@CameraPreviewActivity, "注册失败", Toast.LENGTH_LONG).show()
+
+                            }
+                            R.id.state_progress -> {
+                                mTvHint.setText(R.string.facenet_validate_progress)
+                            }
+
+                        }
+                    }
+
+
                     else -> {
 
                     }
@@ -290,6 +249,8 @@ mCameraThread2.setde                                    }
         wshelper = WebSocketHelper("ws://192.168.164.196:8011", mCameraHandler2)
 
         wshelper.initWs()
+
+
     }
 
     override fun onResume() {
@@ -304,6 +265,8 @@ mCameraThread2.setde                                    }
         } else {
             mTextureView.surfaceTextureListener = mSurfaceTextureListener
         }
+        // mCameraThread2 = CaptureThread(baseContext, mCameraHandler2, mTextureView, wshelper)
+
     }
 
     override fun onPause() {
@@ -324,7 +287,7 @@ mCameraThread2.setde                                    }
             Log.d(TAG, "onSurfaceTextureAvailable, width: $width, height: $height")
             startCameraPreview(width, height)
 
-            initThread()
+            initThread(this@CameraPreviewActivity)
             mCameraThread2.start()
         }
 

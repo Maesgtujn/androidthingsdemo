@@ -20,7 +20,7 @@ public class SurfaceViewDraw extends SurfaceView implements SurfaceHolder.Callba
     /*  mark the thread state */
     private boolean mIsDrawing;
 //    private int x = 0, y = 0;
-    private Paint mPaint;
+    private Paint mPaint,mPaint2;
     public SurfaceViewDraw(Context context){
         this(context, null);
     }
@@ -36,6 +36,13 @@ public class SurfaceViewDraw extends SurfaceView implements SurfaceHolder.Callba
         mPaint.setAntiAlias(true);
         mPaint.setStyle(Paint.Style.STROKE);
         mPaint.setStrokeWidth(2f);
+
+        mPaint2 = new Paint();
+        mPaint2.setColor(Color.RED);
+        mPaint2.setAntiAlias(true);
+        mPaint2.setStyle(Paint.Style.STROKE);
+        mPaint2.setStrokeWidth(2f);
+
 
         initView();
     }
@@ -124,6 +131,31 @@ public class SurfaceViewDraw extends SurfaceView implements SurfaceHolder.Callba
         }
     }
 
+    public void drawRectQR() {
+        try {
+            mCanvas = mSurfaceHolder.lockCanvas();
+            float crop=0.7f;
+            int edge = (int) (Math.min(mCanvas.getHeight(),mCanvas.getWidth())*crop);
+            int top = (int) (mCanvas.getHeight()-edge)/2;
+            int bottom = (int) (mCanvas.getHeight()+edge)/2;
+            int left = (int) (mCanvas.getWidth()-edge)/2;
+
+            int right =(int) (mCanvas.getWidth()+edge)/2;
+
+
+            Rect rect = new Rect(left,top,right,bottom);
+
+            /* draw background and clear the previous frame */
+            mCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
+            mCanvas.drawRect(rect, mPaint2);
+
+        } catch (Exception e){
+        }finally {
+            if (mCanvas != null){
+                mSurfaceHolder.unlockCanvasAndPost(mCanvas);
+            }
+        }
+    }
     public void draw() {
         try {
             mCanvas = mSurfaceHolder.lockCanvas();
