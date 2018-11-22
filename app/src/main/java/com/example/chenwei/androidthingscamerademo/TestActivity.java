@@ -10,7 +10,6 @@ import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 
 
-
 /**
  * Skeleton of an Android Things activity.
  * <p>
@@ -31,25 +30,28 @@ import android.util.Log;
  * @see <a href="https://github.com/androidthings/contrib-drivers#readme">https://github.com/androidthings/contrib-drivers#readme</a>
  */
 public class TestActivity extends Activity {
-private static String TAG="TestActivity";
-    private void checkpermission(Context mContext){
+    private static String TAG = "TestActivity";
+    private Context mContext;
+
+    private void checkpermission(Context mContext) {
 
         int rc = ActivityCompat.checkSelfPermission(mContext, Manifest.permission.CAMERA);
         if (rc == PackageManager.PERMISSION_GRANTED) {
 
             Intent intent = new Intent(mContext, CameraPreviewActivity.class);
             startActivity(intent);
-           Log.d("","PERMISSION_GRANTED");
+            Log.d("", "PERMISSION_GRANTED");
         } else {
             requestCameraPermission(1);
-            Log.d("","NOT_PERMISSION_GRANTED");
+            Log.d("", "NOT_PERMISSION_GRANTED");
 
         }
 
     }
 
-
-    /** Check if this device has a camera */
+    /**
+     * Check if this device has a camera
+     */
 //
 //    private boolean checkCameraHardware(Context context)
 //    {
@@ -99,7 +101,6 @@ private static String TAG="TestActivity";
 //        }
 //        return defaultId;
 //    }
-
     private void requestCameraPermission(final int RC_HANDLE_CAMERA_PERM) {
         Log.w("", "Camera permission is not granted. Requesting permission");
 
@@ -107,17 +108,15 @@ private static String TAG="TestActivity";
 
         ActivityCompat.requestPermissions(this, permissions, RC_HANDLE_CAMERA_PERM);
     }
-    private Context mContext;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_test);
-        mContext =this;
+        mContext = this;
         checkpermission(mContext);
         //Log.d("checkCameraHardware",""+checkCameraHardware(mContext));
         //Log.d("getDefaultCameraId",""+getDefaultCameraId());
-
 
 
     }

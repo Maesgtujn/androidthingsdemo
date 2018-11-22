@@ -9,6 +9,7 @@ import android.view.TextureView;
 import java.util.ArrayList;
 import java.util.Vector;
 
+
 import static com.example.chenwei.androidthingscamerademo.StaticValues.ACTION_TYPE_identify_no_mtcnn;
 import static com.example.chenwei.androidthingscamerademo.StaticValues.ACTION_TYPE_validate;
 import static com.example.chenwei.androidthingscamerademo.Utils.getMarginBitmap;
@@ -29,7 +30,7 @@ public class CaptureThread extends Thread {
     private int detectorType;
     private int count = 0;
     private int frameCount = 0;
-    private int minFaceSize = 300;
+    private int minFaceSize = 350;
     private TextureView mTextureView;
 
     public CaptureThread(Context context, Handler handler, TextureView textureView, WebSocketHelper wshelper) {
@@ -93,7 +94,7 @@ public class CaptureThread extends Thread {
                                 setdetectorType(R.id.what_facenet_regadd);
                             } else {
                                 Log.d(TAG, ">>>qr_code:null");
-                                if (count < 40) {
+                                if (count < 25) {
                                     sendMessage(mHandler, R.id.what_qrcode, null, R.id.state_progress, count);
                                 } else {
                                     sendMessage(mHandler, R.id.what_qrcode, null, R.id.state_fail, count);

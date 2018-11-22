@@ -118,7 +118,7 @@ class CameraPreviewActivity : Activity() {
 
                             }
 
-                            R.id.state_progress -> mTvMsg.setText(getString(R.string.qrcode_progress) + count)
+                            R.id.state_progress -> mTvMsg.setText(getString(R.string.qrcode_progress) + count+"/25")
 
                         }
 
@@ -158,7 +158,7 @@ class CameraPreviewActivity : Activity() {
                                                 unknowCount = 0
                                             }
 
-                                            text = text + String.format("%n %s  @ %.2f", name, 100 * jsonPerson.getDouble("prob")) + "%"
+                                            text = text + String.format("%n %s  @ %.2f %s", name, 100 * jsonPerson.getDouble("prob"),  jsonPerson.getString("emotion"))
                                         }
 
                                         mTvPerson.text = text
