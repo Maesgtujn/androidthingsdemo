@@ -7,6 +7,25 @@
     android:layout_height="match_parent"
     tools:context="com.example.chenwei.androidthingscamerademo.CameraPreviewActivity">
 
+    <TextView
+        android:id="@+id/tv_weight"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:layout_marginTop="8dp"
+        android:text="tv_weight"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tv_ws" />
+
+    <TextView
+        android:id="@+id/textView3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:text="ws:"
+        app:layout_constraintEnd_toStartOf="@+id/tv_ws"
+        app:layout_constraintTop_toTopOf="@+id/tv_ws" />
+
     <com.example.chenwei.androidthingscamerademo.AutoFitTextureView
         android:id="@+id/texture"
         android:layout_width="480dp"
@@ -56,7 +75,7 @@
         android:layout_height="wrap_content"
 
         android:layout_marginTop="8dp"
-        android:text="hint"
+        android:text="@string/standon"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/texture" />
@@ -70,5 +89,41 @@
         android:text="mode"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/tv_bt"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:layout_marginTop="8dp"
+        android:text="tv_bt"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tv_mode" />
+
+    <TextView
+        android:id="@+id/tv_ws"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:layout_marginTop="8dp"
+        android:text="tv_ws"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tv_bt" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:text="bt:"
+        app:layout_constraintEnd_toStartOf="@+id/tv_bt"
+        app:layout_constraintTop_toTopOf="@+id/tv_bt" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:text="kg:"
+        app:layout_constraintEnd_toStartOf="@+id/tv_weight"
+        app:layout_constraintTop_toTopOf="@+id/tv_weight" />
 
 </android.support.constraint.ConstraintLayout>

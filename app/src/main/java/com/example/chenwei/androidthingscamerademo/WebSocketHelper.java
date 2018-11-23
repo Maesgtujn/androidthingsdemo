@@ -58,6 +58,8 @@ public class WebSocketHelper {
                 super.onOpen(webSocket, response);
 //                mWebSocket = webSocket;
                 Log.d("WEBSOCKET", "==ONOPEN:==" + response);
+                sendMessage(mHandler, R.id.what_ws_con, response, R.id.state_succ, 0);
+
 
             }
 
@@ -101,6 +103,7 @@ public class WebSocketHelper {
             @Override
             public void onClosed(WebSocket webSocket, int code, String reason) {
                 super.onClosed(webSocket, code, reason);
+                sendMessage(mHandler, R.id.what_ws_con, reason, R.id.state_discon, code);
 
                 Log.d("WEBSOCKET", "==onClosed:==" + reason + "#" + code);
 //                mWebSocket = null;
@@ -110,6 +113,7 @@ public class WebSocketHelper {
             @Override
             public void onFailure(WebSocket webSocket, Throwable t, Response response) {
                 super.onFailure(webSocket, t, response);
+                sendMessage(mHandler, R.id.what_ws_con, response, R.id.state_fail, 0);
 
 
                 Log.d("WEBSOCKET", "==onFailure:==" + response);
@@ -119,6 +123,8 @@ public class WebSocketHelper {
                     public void run() {
                         try {
                             Thread.sleep(10000);
+                            sendMessage(mHandler, R.id.what_ws_con, null, R.id.state_start, 0);
+
                             mWebSocket = client.newWebSocket(request, webSocketListener);
 
                         } catch (InterruptedException e) {
@@ -129,6 +135,8 @@ public class WebSocketHelper {
 
             }
         };
+        sendMessage(mHandler, R.id.what_ws_con, null, R.id.state_start, 0);
+
         mWebSocket = client.newWebSocket(request, webSocketListener);
 
 

@@ -17,7 +17,6 @@
     <string name="facenet_identify_progress"> 已尝试$count+次</string>
 
 
-
     <string name="facenet_add_start">人脸注册采集开始</string>
     <string name="facenet_add_succ">人脸注册采集成功</string>
     <string name="facenet_add_fail">人脸注册采集失败</string>
@@ -27,6 +26,19 @@
     <string name="facenet_validate_succ">人脸注册后台验证成功</string>
     <string name="facenet_validate_fail">人脸注册后台验证失败</string>
     <string name="facenet_validate_progress"> 已尝试$count+次</string>
+
+    <string name='connect_fail'>连接失败</string>
+    <string name="con_func_fail">未服务</string>
+
+    <string name="active_disconnected">active_disconnected</string>
+    <string name="connected">已连接</string>
+    <string name="connecting">连接中</string>
+
+    <string name="disconnected">未连接</string>
+    <string name="standon">请站到体重秤</string>
+
+    <string name="mode_idle">等待中</string>
+    <string name="mode_face_idtf">人脸检测</string>
 
 
 </resources>

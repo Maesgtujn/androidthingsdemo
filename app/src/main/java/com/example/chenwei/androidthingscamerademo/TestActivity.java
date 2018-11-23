@@ -32,11 +32,19 @@ import android.util.Log;
 public class TestActivity extends Activity {
     private static String TAG = "TestActivity";
     private Context mContext;
+    final String[] permissions = new String[]{Manifest.permission.ACCESS_COARSE_LOCATION,Manifest.permission.CAMERA};
 
     private void checkpermission(Context mContext) {
 
-        int rc = ActivityCompat.checkSelfPermission(mContext, Manifest.permission.CAMERA);
-        if (rc == PackageManager.PERMISSION_GRANTED) {
+        boolean succ = true;
+        for (String ss : permissions) {
+            int rc = this.checkSelfPermission(ss);
+            if (rc != PackageManager.PERMISSION_GRANTED) {
+                succ = false;
+            }
+
+        }
+        if (succ) {
 
             Intent intent = new Intent(mContext, CameraPreviewActivity.class);
             startActivity(intent);
@@ -47,64 +55,12 @@ public class TestActivity extends Activity {
 
         }
 
+
     }
 
-    /**
-     * Check if this device has a camera
-     */
-//
-//    private boolean checkCameraHardware(Context context)
-//    {
-//        if (context.getPackageManager().hasSystemFeature(
-//                PackageManager.FEATURE_CAMERA_ANY))
-//        {
-//            // this device has a camera
-//            return true;
-//        }
-//        else
-//        {
-//            // no camera on this device
-//            return false;
-//        }
-//    }
-//
-//    private int getDefaultCameraId()
-//    {
-//        int defaultId = -1;
-//
-//        // Find the total number of cameras available
-//        int mNumberOfCameras = Camera.getNumberOfCameras();
-//
-//        // Find the ID of the default camera
-//        Camera.CameraInfo cameraInfo = new Camera.CameraInfo();
-//        for (int i = 0; i < mNumberOfCameras; i++)
-//        {
-//            Camera.getCameraInfo(i, cameraInfo);
-//            if (cameraInfo.facing == Camera.CameraInfo.CAMERA_FACING_BACK)
-//            {
-//                defaultId = i;
-//            }
-//        }
-//        if (-1 == defaultId)
-//        {
-//            if (mNumberOfCameras > 0)
-//            {
-//                // 如果没有后向摄像头
-//                defaultId = 0;
-//            }
-//            else
-//            {
-//                // 没有摄像头
-//                Toast.makeText(getApplicationContext(), "NO CAMERA",
-//                        Toast.LENGTH_LONG).show();
-//            }
-//        }
-//        return defaultId;
-//    }
     private void requestCameraPermission(final int RC_HANDLE_CAMERA_PERM) {
         Log.w("", "Camera permission is not granted. Requesting permission");
 
-        final String[] permissions = new String[]{Manifest.permission.CAMERA};
 
         ActivityCompat.requestPermissions(this, permissions, RC_HANDLE_CAMERA_PERM);
     }

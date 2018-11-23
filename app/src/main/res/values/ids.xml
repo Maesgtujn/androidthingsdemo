@@ -33,13 +33,24 @@
     <item name="what_facenet_validate" type="id" />
     <item name="what_facenet_regadd" type="id" />
     <item name="what_qrcode" type="id" />
+
+    <item name="what_bt_con" type="id" />
+    <item name="what_ws_con" type="id" />
+    <item name="what_weight" type="id" />
+
     <item name="what_idle" type="id" />
 
 
     <item name="state_start" type="id" />
     <item name="state_succ" type="id" />
     <item name="state_fail" type="id" />
+    <item name="state_funcfail" type="id" />
+
+    <item name="state_discon" type="id" />
+
     <item name="state_progress" type="id" />
 
+    <item name="state_leave" type="id" />
+    <item name="state_leave_without_stable_value" type="id" />
 
 </resources>

@@ -92,7 +92,21 @@ public class SurfaceViewDraw extends SurfaceView implements SurfaceHolder.Callba
 
         mSurfaceHolder.addCallback(this);   //  register callback
     }
+    public void clear() {
+        try {
+            mCanvas = mSurfaceHolder.lockCanvas();
 
+            /* draw background and clear the previous frame */
+            mCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
+
+        } catch (Exception e){
+
+        }finally {
+            if (mCanvas != null){
+                mSurfaceHolder.unlockCanvasAndPost(mCanvas);
+            }
+        }
+    }
     public void draw(Rect rect) {
         try {
             mCanvas = mSurfaceHolder.lockCanvas();

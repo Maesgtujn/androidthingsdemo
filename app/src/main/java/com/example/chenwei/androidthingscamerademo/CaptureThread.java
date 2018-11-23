@@ -39,7 +39,8 @@ public class CaptureThread extends Thread {
         this.mTextureView = textureView;
         this.wshelper = wshelper;
         mtcnn = new MTCNN(context.getAssets());
-        detectorType = R.id.what_facenet_identify;
+        //detectorType = R.id.what_facenet_identify;
+        detectorType = R.id.what_idle;
     }
 
 
@@ -74,7 +75,7 @@ public class CaptureThread extends Thread {
                 bm = Utils.copyBitmap(bitmap);
                 //bm = Bitmap.createScaledBitmap(bitmap, 600, Math.round(((bitmap.height * 600 / bitmap.width).toDouble())).toInt(), false)
                 Log.d(TAG, "processImage: bitmap:" + bm.getWidth() + "," + bm.getHeight());
-                frameCount++;
+                //frameCount++;
                 Double frameRate = 1000.0 * frameCount / ((System.currentTimeMillis() - t_start));
 
                 Log.d(TAG, "======== #" + frameCount + ",frameRate(f/s):" + frameRate);
