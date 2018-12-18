@@ -69,15 +69,6 @@ class CameraPreviewActivity : Activity() {
     //1->MTCNN&FACENET , 2->QRCODE ,3->face reg
 
 
-    fun initThread(context: Context) {
-        //mCameraThread2.run()
-        /**
-        - 异步线程
-         */
-        mCameraThread2 = CaptureThread(context, mCameraHandler2, mTextureView, wshelper)
-
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
 
         pd = ProgressDialog(this@CameraPreviewActivity)
@@ -96,15 +87,14 @@ class CameraPreviewActivity : Activity() {
         mTvHint = findViewById(R.id.tv_hint)
 
 
-        mTvMsg.setOnClickListener(View.OnClickListener {
-
+        mTvMsg.setOnClickListener {
             val intent = Intent(it.context, CaptureActivity::class.java)
             startActivity(intent)
-        })
+        }
         //mtcnn = MTCNN(assets)
 
         tv_mode.setText(R.string.mode_idle)
-        tv_weight.setText("...")
+        tv_weight.text = "..."
 
         BleManager.getInstance().init(application)
         BleManager.getInstance().enableBluetooth()
@@ -114,7 +104,7 @@ class CameraPreviewActivity : Activity() {
                 .setReConnectCount(1, 5000)
                 .setConnectOverTime(20000).operateTimeout = 5000
 
-        mCameraHandler2 = CamHandler(this);
+        mCameraHandler2 = CamHandler(this)
 
         wshelper = WebSocketHelper("ws://192.168.164.196:8011", mCameraHandler2)
 
@@ -430,5 +420,14 @@ class CameraPreviewActivity : Activity() {
         image.close()
         Log.d(TAG, "Still image size: ${imageBytes.size}")
         */
+    }
+
+    /**
+     * Initialize the {@code CaptureThread}
+     */
+    fun initThread(context: Context) {
+        //mCameraThread2.run()
+        mCameraThread2 = CaptureThread(context, mCameraHandler2, mTextureView, wshelper)
+
     }
 }

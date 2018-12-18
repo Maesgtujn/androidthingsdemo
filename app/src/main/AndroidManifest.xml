@@ -12,7 +12,7 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
-    <application>
+    <application android:theme="@android:style/Theme.Material.NoActionBar.Fullscreen">
         <!--<uses-library android:name="com.google.android.things" />-->
 
         <activity

@@ -50,7 +50,7 @@ public class CaptureThread extends Thread {
             count = 0;
         }
     }
-    public int getdetectorType(){
+    public int getDetectorType(){
         return detectorType;
     }
 

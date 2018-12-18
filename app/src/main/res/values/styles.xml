@@ -2,5 +2,11 @@
 
     <!-- Base application theme. -->
     <style name="AppTheme" parent="android:Theme.Black.NoTitleBar.Fullscreen" />
+    <style name="ResultText" parent="android:Widget.TextView">
+        <!--<item name="android:layout_margin">20sp</item>-->
+        <item name="android:textColor">@android:color/white</item>
+        <item name="android:textSize">30sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
 
 </resources>

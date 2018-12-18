@@ -44,7 +44,7 @@ internal class CamHandler(activity: CameraPreviewActivity) : Handler() {
     fun setThreadIdle() {
         theActivity!!.mCameraThread2.setdetectorType(R.id.what_idle)
         theActivity!!.tv_mode.setText(R.string.mode_idle)
-        theActivity!!.tv_hint.setText(R.string.standon)
+        theActivity!!.tv_hint.setText(R.string.hint)
         theActivity!!.mDraw.clear()
     }
 
@@ -184,7 +184,7 @@ internal class CamHandler(activity: CameraPreviewActivity) : Handler() {
             }
             R.id.what_facenet_identify -> {
                 try {
-                    if (theActivity!!.mCameraThread2.getdetectorType() == R.id.what_facenet_identify)
+                    if (theActivity!!.mCameraThread2.getDetectorType() == R.id.what_facenet_identify)
                         when (state) {
                             R.id.state_start -> {
                                 //unknowCount = 0

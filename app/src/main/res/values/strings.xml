@@ -35,10 +35,19 @@
     <string name="connecting">连接中</string>
 
     <string name="disconnected">未连接</string>
-    <string name="standon">请站到体重秤</string>
+    <string name="hint">尝试站在体重秤上</string>
 
     <string name="mode_idle">等待中</string>
     <string name="mode_face_idtf">人脸检测</string>
+    <string name="tv_weight">tv_weight</string>
+    <string name="ws">ws:</string>
+    <string name="tv_msg">tv_msg</string>
+    <string name="tv_person">tv_person</string>
+    <string name="mode">mode</string>
+    <string name="tv_ws">tv_ws</string>
+    <string name="tv_bt">tv_bt</string>
+    <string name="bt">bt:</string>
+    <string name="kg">kg</string>
 
 
 </resources>
