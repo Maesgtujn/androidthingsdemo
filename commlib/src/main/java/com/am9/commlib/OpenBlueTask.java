@@ -12,14 +12,14 @@ import com.clj.fastble.BleManager;
  * Created by williamsha on 2018/8/31.
  */
 public class OpenBlueTask extends AsyncTask<Integer, Integer, String> {
-    String TAG = "OpenBlueTask";
+    private static final String TAG = OpenBlueTask.class.getSimpleName();
 
-    private Context mContext;
     private Runnable runnable;
     private ProgressDialog dialog;
-private int delay = 100;
+    private int delay = 100;
+
     public OpenBlueTask(Context context, Runnable runnable) {
-        this.mContext = context;
+        Context mContext = context;
 
         this.dialog = new ProgressDialog(mContext);
         this.runnable = runnable;
@@ -33,7 +33,7 @@ private int delay = 100;
         super.onPostExecute(s);
         dialog.dismiss();
         Handler handler = new Handler();
-        handler.postDelayed(runnable,delay);
+        handler.postDelayed(runnable, delay);
     }
 
     @Override
@@ -51,7 +51,7 @@ private int delay = 100;
     @Override
     protected String doInBackground(Integer... params) {
         //第二个执行方法,onPreExecute()执行完后执行
-        if(!BleManager.getInstance().isBlueEnable()){
+        if (!BleManager.getInstance().isBlueEnable()) {
             delay = 3000;
             BleManager.getInstance().enableBluetooth();
         }
@@ -60,8 +60,8 @@ private int delay = 100;
             try {
                 Thread.sleep(params[0]);
                 boolean isEnable = BleManager.getInstance().isBlueEnable();
-                Log.d(TAG, i + "--"+isEnable);
-                if(isEnable){
+                Log.d(TAG, i + "--" + isEnable);
+                if (isEnable) {
                     return "isEnable";
                 }
             } catch (InterruptedException e) {

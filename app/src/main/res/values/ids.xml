@@ -19,14 +19,10 @@
     <item name="decode" type="id" />
     <item name="decode_failed" type="id" />
     <item name="decode_succeeded" type="id" />
-    <item name="encode_failed" type="id" />
-    <item name="encode_succeeded" type="id" />
     <item name="launch_product_query" type="id" />
     <item name="quit" type="id" />
     <item name="restart_preview" type="id" />
     <item name="return_scan_result" type="id" />
-    <item name="search_book_contents_failed" type="id" />
-    <item name="search_book_contents_succeeded" type="id" />
 
     <item name="what_mtcnn" type="id" />
     <item name="what_facenet_identify" type="id" />

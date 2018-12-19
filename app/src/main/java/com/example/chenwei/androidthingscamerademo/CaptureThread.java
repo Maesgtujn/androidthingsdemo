@@ -24,27 +24,28 @@ public class CaptureThread extends Thread {
     static String TAG = "CaptureThread";
     boolean continua = false;
     private Handler mHandler;
-    private Context mContext;
+//    private Context mContext;
     private WebSocketHelper wshelper;
     private MTCNN mtcnn;
     private int detectorType;
     private int count = 0;
-    private int frameCount = 0;
-    private int minFaceSize = 350;
     private TextureView mTextureView;
 
-    public CaptureThread(Context context, Handler handler, TextureView textureView, WebSocketHelper wshelper) {
-        this.mContext = context;
+    public CaptureThread(Context context, Handler handler, TextureView textureView, WebSocketHelper wsHelper) {
+//        this.mContext = context;
         this.mHandler = handler;
         this.mTextureView = textureView;
-        this.wshelper = wshelper;
+        this.wshelper = wsHelper;
         mtcnn = new MTCNN(context.getAssets());
         //detectorType = R.id.what_facenet_identify;
         detectorType = R.id.what_idle;
     }
 
-
-    public void setdetectorType(int type) {
+    /**
+     * The method
+     * @param type
+     */
+    public void setDetectorType(int type) {
         if (detectorType != type) {
             detectorType = type;
             count = 0;
@@ -76,10 +77,12 @@ public class CaptureThread extends Thread {
                 //bm = Bitmap.createScaledBitmap(bitmap, 600, Math.round(((bitmap.height * 600 / bitmap.width).toDouble())).toInt(), false)
                 Log.d(TAG, "processImage: bitmap:" + bm.getWidth() + "," + bm.getHeight());
                 //frameCount++;
+                int frameCount = 0;
                 Double frameRate = 1000.0 * frameCount / ((System.currentTimeMillis() - t_start));
 
                 Log.d(TAG, "======== #" + frameCount + ",frameRate(f/s):" + frameRate);
                 try {
+                    int minFaceSize = 350;
 
                     switch (detectorType) {
                         case R.id.what_qrcode:
@@ -92,20 +95,21 @@ public class CaptureThread extends Thread {
                                 qr_code = rawResult;
                                 Log.d(TAG, ">>>qr_code:$qr_code");
                                 sendMessage(mHandler, R.id.what_qrcode, rawResult, R.id.state_succ, count);
-                                setdetectorType(R.id.what_facenet_regadd);
+                                setDetectorType(R.id.what_facenet_regadd);
                             } else {
                                 Log.d(TAG, ">>>qr_code:null");
                                 if (count < 25) {
                                     sendMessage(mHandler, R.id.what_qrcode, null, R.id.state_progress, count);
                                 } else {
                                     sendMessage(mHandler, R.id.what_qrcode, null, R.id.state_fail, count);
-                                    setdetectorType(R.id.what_facenet_identify);
+                                    setDetectorType(R.id.what_facenet_identify);
                                 }
                             }
                             break;
 
                         case R.id.what_facenet_identify:
                             sendMessage(mHandler, R.id.what_mtcnn, null, R.id.state_start, 0);
+
 
                             boxes = mtcnn.detectFaces(bm, minFaceSize);
                             sendMessage(mHandler, R.id.what_mtcnn, boxes, R.id.state_succ, boxes.size());
@@ -117,7 +121,7 @@ public class CaptureThread extends Thread {
                                 }
                                 sendMessage(mHandler, R.id.what_facenet_identify, boxes, R.id.state_start, boxes.size());
                                 wshelper.sendReq(bitmaps, ACTION_TYPE_identify_no_mtcnn, null);
-                                //what_facenet_identify  state_succ,在wshelper的onMessage中主动发送给 mCameraHandler2
+                                //what_facenet_identify  state_succ,在wshelper的onMessage中主动发送给 mMessageHandler
                             }
                             break;
                         case R.id.what_facenet_regadd:

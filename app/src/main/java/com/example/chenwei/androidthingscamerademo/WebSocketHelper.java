@@ -4,10 +4,8 @@ package com.example.chenwei.androidthingscamerademo;
  * Created by williamsha on 2018/10/23.
  */
 
-import android.content.Context;
 import android.graphics.Bitmap;
 import android.os.Handler;
-import android.os.Message;
 import android.util.Log;
 
 import org.json.JSONArray;
@@ -27,6 +25,10 @@ import static com.example.chenwei.androidthingscamerademo.StaticValues.ACTION_TY
 import static com.example.chenwei.androidthingscamerademo.StaticValues.ACTION_TYPE_validate;
 import static com.example.chenwei.androidthingscamerademo.Utils.sendMessage;
 
+/**
+ * The {@code WebSocketHelper} class help to initialize the WebSocket service.
+ * Including a server and a client.
+ */
 public class WebSocketHelper {
     private static String TAG = "WebSocketHelper";
     private OkHttpClient client;
@@ -35,11 +37,10 @@ public class WebSocketHelper {
     private Request request;
     private String HOST_URL;
     private Handler mHandler;
-    private Context mContext;
 
     public WebSocketHelper(String HOST_URL, Handler mHandler) {
         this.HOST_URL = HOST_URL;
-        this.mHandler = mHandler;
+        this.mHandler = mHandler;       //  message handler
     }
 
     public void initWs() {
@@ -72,10 +73,7 @@ public class WebSocketHelper {
                     String action_type = jsonObject.getString("action_type");
                     if (action_type.equals(ACTION_TYPE_identify_no_mtcnn)) {
                         JSONArray jsonPersons = jsonObject.getJSONArray("data");
-                        Message msg = Message.obtain();
-                        msg.what = StaticValues.WHAT_FACENET;
-                        msg.obj = jsonPersons;
-                        mHandler.sendMessage(msg);
+
                         sendMessage(mHandler, R.id.what_facenet_identify, jsonPersons, R.id.state_succ, jsonPersons.length());
 
 
@@ -83,12 +81,12 @@ public class WebSocketHelper {
                     if (action_type.equals(ACTION_TYPE_validate)) {
                         //{"action_type": "/validate", "data": {"accu": 0.9736842105263158, "succ": true, "wrong": [0.0, 0.0]}, "dur": 185261, "req_id": 1230770643302}
                         //{"action_type": "/validate", "dur": 987489, "data": {"accu": 0.9741935483870968, "wrong": [0.3333333333333333, 0.0], "succ": false}, "req_id": 1230786685456}
-                        JSONObject jsdata = jsonObject.getJSONObject("data");
-                        boolean succ = jsdata.getBoolean("succ");
-                        if (succ)
-                            sendMessage(mHandler, R.id.what_facenet_validate, jsdata, R.id.state_succ, 1);
+                        JSONObject jsData = jsonObject.getJSONObject("data");
+                        boolean isSucceed = jsData.getBoolean("succ");
+                        if (isSucceed)
+                            sendMessage(mHandler, R.id.what_facenet_validate, jsData, R.id.state_succ, 1);
                         else
-                            sendMessage(mHandler, R.id.what_facenet_validate, jsdata, R.id.state_fail, 0);
+                            sendMessage(mHandler, R.id.what_facenet_validate, jsData, R.id.state_fail, 0);
 
 
                     }

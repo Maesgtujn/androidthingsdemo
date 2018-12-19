@@ -18,7 +18,8 @@ import kotlin.Comparator
 /**
  * Created by Chen Wei on 2017/12/5.
  */
-class DemoCamera(private val mImageAvailableListener: ImageReader.OnImageAvailableListener,
+class DemoCamera(
+//        private val mImageAvailableListener: ImageReader.OnImageAvailableListener,
                  private val mBackgroundHandler: Handler,
                  private val mTextureView: AutoFitTextureView? = null) {
 
@@ -136,7 +137,7 @@ class DemoCamera(private val mImageAvailableListener: ImageReader.OnImageAvailab
 
             // Initialize image processor
             mImageReader = ImageReader.newInstance(largest.width, largest.height, ImageFormat.JPEG, MAX_IMAGES)
-            mImageReader!!.setOnImageAvailableListener(mImageAvailableListener, mBackgroundHandler)
+//            mImageReader!!.setOnImageAvailableListener(mImageAvailableListener, mBackgroundHandler)
 
             val displayRotation = activity.windowManager.defaultDisplay.rotation
             Log.d(TAG, "Display rotation: $displayRotation")

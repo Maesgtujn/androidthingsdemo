@@ -58,9 +58,9 @@ public class Utils {
 
     //在图中画点
     public static void drawPoints(Bitmap bitmap, Point[] landmark) {
-        for (int i = 0; i < landmark.length; i++) {
-            int x = landmark[i].x;
-            int y = landmark[i].y;
+        for (Point aLandmark : landmark) {
+            int x = aLandmark.x;
+            int y = aLandmark.y;
             //Log.i("Utils","[*] landmarkd "+x+ "  "+y);
             drawRect(bitmap, new Rect(x - 1, y - 1, x + 1, y + 1));
         }

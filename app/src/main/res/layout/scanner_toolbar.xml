@@ -5,7 +5,7 @@
     android:id="@+id/toolbar"
     android:layout_width="match_parent"
     android:layout_height="?attr/actionBarSize"
-    android:background="#333">
+    >
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -13,19 +13,19 @@
 
         <ImageView
             android:id="@+id/scanner_toolbar_back"
+            android:contentDescription="@string/desc"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:paddingLeft="10dp"
-            android:paddingRight="20dp"
+            android:paddingStart="10dp"
+            android:paddingEnd="20dp"
             android:src="@mipmap/abc_ic_ab_back_mtrl_am_alpha"/>
 
         <TextView
-            android:id="@+id/scanner_toolbar_title"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:gravity="center_vertical"
-            android:text="二维码/条码"
+            android:text="@string/qr_code"
             android:textColor="#fff"
             android:textSize="16sp"/>
 

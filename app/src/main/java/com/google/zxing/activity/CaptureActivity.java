@@ -370,7 +370,7 @@ public class CaptureActivity extends AppCompatActivity implements Callback {
         }
         if (vibrate) {
             Vibrator vibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
-            vibrator.vibrate(VIBRATE_DURATION);
+//            vibrator.vibrate(VIBRATE_DURATION);
         }
     }
 

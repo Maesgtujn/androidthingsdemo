@@ -1,10 +1,4 @@
 <resources>
-    <string name="app_name">AndroidThingsCameraDemo</string>
-    <string name="btn_take_picture">Take picture</string>
-    <string name="encode_qrcode">生成二维码</string>
-    <string name="dencode_qrcode">扫描二维码</string>
-    <string name="code_text">请输入生成二维码的文本信息</string>
-    <string name="qrcodetext">这里显示扫描结果</string>
 
     <string name="qrcode_start">请将员工卡二维码放入扫描框中</string>
     <string name="qrcode_succ">二维码扫描成功</string>
@@ -14,13 +8,10 @@
     <string name="facenet_identify_start">人脸识别中</string>
     <string name="facenet_identify_succ">人脸识别成功</string>
     <string name="facenet_identify_fail">人脸识别失败</string>
-    <string name="facenet_identify_progress"> 已尝试$count+次</string>
 
 
     <string name="facenet_add_start">人脸注册采集开始</string>
     <string name="facenet_add_succ">人脸注册采集成功</string>
-    <string name="facenet_add_fail">人脸注册采集失败</string>
-    <string name="facenet_add_progress"> 已尝试$count+次</string>
 
     <string name="facenet_validate_start">人脸注册后台验证开始</string>
     <string name="facenet_validate_succ">人脸注册后台验证成功</string>
@@ -30,7 +21,6 @@
     <string name='connect_fail'>连接失败</string>
     <string name="con_func_fail">未服务</string>
 
-    <string name="active_disconnected">active_disconnected</string>
     <string name="connected">已连接</string>
     <string name="connecting">连接中</string>
 
@@ -39,15 +29,16 @@
 
     <string name="mode_idle">等待中</string>
     <string name="mode_face_idtf">人脸检测</string>
-    <string name="tv_weight">tv_weight</string>
     <string name="ws">ws:</string>
-    <string name="tv_msg">tv_msg</string>
-    <string name="tv_person">tv_person</string>
     <string name="mode">mode</string>
     <string name="tv_ws">tv_ws</string>
     <string name="tv_bt">tv_bt</string>
     <string name="bt">bt:</string>
     <string name="kg">kg</string>
+
+    <string name="desc">picture</string>
+    <string name="qr_code">二维码/条码</string>
+    <string name="qrcode_string">qrcode</string>
 
 
 </resources>

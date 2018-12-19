@@ -30,16 +30,13 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.1'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
-    compileOnly 'com.google.android.things:androidthings:+'
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
+    compileOnly 'com.google.android.things:androidthings:1.0'
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation 'com.google.android.things.contrib:driver-button:0.5'
-    compile 'org.tensorflow:tensorflow-android:+'
     implementation 'com.squareup.okhttp3:okhttp:3.7.0'
-    //ZXing
     compile 'com.google.zxing:core:3.3.0'
-    //butterknife注解框架
     compile 'com.jakewharton:butterknife:8.2.1'
     implementation project(':FastBleLib')
-    //apt 'com.jakewharton:butterknife-compiler:8.2.1'
     implementation project(':commlib')
+    implementation 'org.tensorflow:tensorflow-android:1.12.0'
 }

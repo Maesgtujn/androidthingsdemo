@@ -5,22 +5,16 @@ import android.app.ProgressDialog
 import android.bluetooth.BluetoothGatt
 import android.bluetooth.BluetoothGattCharacteristic
 import android.content.Context
-import android.content.Intent
-import android.graphics.Bitmap
 import android.graphics.SurfaceTexture
-import android.media.ImageReader
 import android.os.Bundle
 import android.os.Handler
 import android.os.HandlerThread
 import android.os.Message
 import android.util.Log
 import android.view.TextureView
-import android.view.View
-import android.widget.TextView
 import com.am9.commlib.MISCALEConnectUtil
 import com.am9.commlib.MISCALEConnectUtil.convertToWeight
-import com.am9.commlib.MISCALEConnectUtil.getWeightStat
-import com.am9.commlib.MyBleNotifyCallback
+import com.am9.commlib.MISCALEConnectUtil.getWeightState
 import com.am9.commlib.OpenBlueTask
 import com.clj.fastble.BleManager
 import com.clj.fastble.callback.BleGattCallback
@@ -29,43 +23,30 @@ import com.clj.fastble.callback.BleScanCallback
 import com.clj.fastble.data.BleDevice
 import com.clj.fastble.exception.BleException
 import com.example.chenwei.androidthingscamerademo.Utils.sendMessage
-import com.google.zxing.activity.CaptureActivity
 import kotlinx.android.synthetic.main.activity_camera_preview.*
-import java.util.concurrent.Semaphore
 import android.widget.Button as WidgetButton
 
 
 class CameraPreviewActivity : Activity() {
-    val TAG: String = "CameraPreviewActivity"
-    private lateinit var mCameraHandler: Handler
-    private lateinit var mCameraThread: HandlerThread
 
-    public lateinit var mCameraHandler2: Handler
-    public lateinit var mCameraThread2: CaptureThread
+    private lateinit var mBackgroundHandler: Handler
+    private lateinit var mBackgroundThread: HandlerThread
+
+    lateinit var mMessageHandler: Handler
+    lateinit var mCaptureThread: CaptureThread
     private var continua: Boolean = false
-    private var frameCount: Int = 0
-    private var t_start = System.currentTimeMillis()
-    public lateinit var pd: ProgressDialog
+    //    private var frameCount: Int = 0
+//    private var t_start = System.currentTimeMillis()
+    lateinit var pd: ProgressDialog
 
     private lateinit var mCamera: DemoCamera
-    private val mCameraOpenCloseLock: Semaphore = Semaphore(1)
-
-    public lateinit var mTextureView: AutoFitTextureView
-    public lateinit var mDraw: SurfaceViewDraw
-    public lateinit var mTvMsg: TextView
-    public lateinit var mTvPerson: TextView
-    public lateinit var mTvMode: TextView
-    public lateinit var mTvbtCon: TextView
-
-    public lateinit var mTvWsCon: TextView
-
-    public lateinit var mTvHint: TextView
+//    private val mCameraOpenCloseLock: Semaphore = Semaphore(1)
 
 
-    private lateinit var bitmap: Bitmap
+    //    private lateinit var bitmap: Bitmap
     private lateinit var wshelper: WebSocketHelper
-    lateinit var mtcnn: MTCNN
-    private var unknowCount: Int = 0
+
+//    private var unknowCount: Int = 0
     //1->MTCNN&FACENET , 2->QRCODE ,3->face reg
 
 
@@ -75,28 +56,10 @@ class CameraPreviewActivity : Activity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_camera_preview)
 
-        mTextureView = findViewById(R.id.texture)
-        mDraw = findViewById(R.id.draw)
-        mTvMsg = findViewById(R.id.tv_msg)
-        mTvPerson = findViewById(R.id.tv_person)
-        mTvMode = findViewById(R.id.tv_mode)
-        mTvbtCon = findViewById(R.id.tv_bt)
-
-        mTvWsCon = findViewById(R.id.tv_ws)
-
-        mTvHint = findViewById(R.id.tv_hint)
-
-
-        mTvMsg.setOnClickListener {
-            val intent = Intent(it.context, CaptureActivity::class.java)
-            startActivity(intent)
-        }
-        //mtcnn = MTCNN(assets)
-
         tv_mode.setText(R.string.mode_idle)
         tv_weight.text = "..."
 
-        BleManager.getInstance().init(application)
+        BleManager.getInstance().init(application)                  //  start bluetooth service
         BleManager.getInstance().enableBluetooth()
 
         BleManager.getInstance()
@@ -104,20 +67,38 @@ class CameraPreviewActivity : Activity() {
                 .setReConnectCount(1, 5000)
                 .setConnectOverTime(20000).operateTimeout = 5000
 
-        mCameraHandler2 = CamHandler(this)
+        /* Initialize a handler to handle message */
+        mMessageHandler = MessageHandler(this)
 
-        wshelper = WebSocketHelper("ws://192.168.164.196:8011", mCameraHandler2)
+        wshelper = WebSocketHelper("ws://192.168.164.196:8011", mMessageHandler)
 
-        wshelper.initWs()
+        wshelper.initWs()                                          //   start webSocket service
 
+
+    }
+
+    override fun onResume() {
+        super.onResume()
+        Log.d(TAG, "onResume")
+        startBackgroundThread()                                    //   start background camera preview thread
+        mCamera = DemoCamera(mBackgroundHandler, texture)
+
+        if (texture.isAvailable) {
+            Log.d(TAG, "texture.isAvailable? ${texture.isAvailable}")
+            startCameraPreview(texture.width, texture.height)
+
+        } else {
+            texture.surfaceTextureListener = mSurfaceTextureListener
+        }
+        // mCaptureThread = CaptureThread(baseContext, mMessageHandler, texture, wshelper)
 
     }
 
     override fun onPostResume() {
         super.onPostResume()
 
-
         Log.d(TAG, "onPostResume")
+
         val runa = Runnable {
             Log.d(TAG, "RUN=======")
             MISCALEConnectUtil.setScanRule("MI_SCALE", false)
@@ -130,59 +111,72 @@ class CameraPreviewActivity : Activity() {
 
     }
 
+    override fun onPause() {
+        Log.d(TAG, "onPause")
+        stopBackgroundThread()
+        Log.d(TAG, "stopBackgroundThread")
+
+        super.onPause()
+    }
+
     private fun startScan() {
         BleManager.getInstance().scan(object : BleScanCallback() {
             override fun onScanStarted(success: Boolean) {
-                //addText(mTvMsg, "scan.onScanStarted")
+                //addText(tv_msg, "scan.onScanStarted")
             }
 
             override fun onScanning(bleDevice: BleDevice) {
-                //addText(mTvMsg, "scan.onScanning;name:" + bleDevice.name + "\n" + bleDevice.mac)
+                //addText(tv_msg, "scan.onScanning;name:" + bleDevice.name + "\n" + bleDevice.mac)
                 BleManager.getInstance().cancelScan()
                 connect(bleDevice)
             }
 
             override fun onScanFinished(scanResultList: List<BleDevice>) {
 
-                //addText(mTvMsg, "scan.onScanFinished:" + scanResultList.size)
+                //addText(tv_msg, "scan.onScanFinished:" + scanResultList.size)
 
             }
         })
     }
 
+    /**
+     * Connect the specific [bleDevice] and send message to handler to update the UI.
+     * Eg: When onStartConnect, set [tv_bt] text as connecting.
+     *
+     */
     private fun connect(bleDevice: BleDevice) {
 
         BleManager.getInstance().connect(bleDevice, object : BleGattCallback() {
             override fun onStartConnect() {
-                //addText(mTvMsg, "connect.onStartConnect")
-                sendMessage(mCameraHandler2, R.id.what_bt_con, bleDevice, R.id.state_start, 0)
+                //addText(tv_msg, "connect.onStartConnect")
+                sendMessage(mMessageHandler, R.id.what_bt_con, bleDevice, R.id.state_start, 0)
 
             }
 
             override fun onConnectFail(bleDevice: BleDevice, exception: BleException) {
-                //addText(mTvMsg, "connect.onConnectFail")
+                //addText(tv_msg, "connect.onConnectFail")
                 //pd.dismiss()
                 //Toast.makeText(this@CameraPreviewActivity, getString(R.string.connect_fail), Toast.LENGTH_LONG).show()
-                sendMessage(mCameraHandler2, R.id.what_bt_con, bleDevice, R.id.state_fail, 0)
+                sendMessage(mMessageHandler, R.id.what_bt_con, bleDevice, R.id.state_fail, 0)
 
             }
 
             override fun onConnectSuccess(bleDevice: BleDevice, gatt: BluetoothGatt, status: Int) {
-                //addText(mTvMsg, "connect.onConnectSuccess")
+                //addText(tv_msg, "connect.onConnectSuccess")
                 //pd.dismiss()
                 val characteristic = MISCALEConnectUtil.getCharacteristic(gatt)
-                regNotify(false, bleDevice, characteristic)
+                regNotify(false, bleDevice, characteristic)                                        //  recognise the notify message
 
                 //regAll_Notify(bleDevice,gatt)
-                //sendMessage(mCameraHandler2, R.id.what_bt_con, bleDevice, R.id.state_succ, 0)
-                sendMessage(mCameraHandler2, R.id.what_bt_con, bleDevice, R.id.state_progress, 0)
+                //sendMessage(mMessageHandler, R.id.what_bt_con, bleDevice, R.id.state_succ, 0)
+                sendMessage(mMessageHandler, R.id.what_bt_con, bleDevice, R.id.state_progress, 0)
 
             }
 
             override fun onDisConnected(isActiveDisConnected: Boolean, bleDevice: BleDevice, gatt: BluetoothGatt, status: Int) {
                 //pd.dismiss()
-                //addText(mTvMsg, "connect.onDisConnected:isActiveDisConnected:$isActiveDisConnected")
-                sendMessage(mCameraHandler2, R.id.what_bt_con, bleDevice, R.id.state_discon, 0)
+                //addText(tv_msg, "connect.onDisConnected:isActiveDisConnected:$isActiveDisConnected")
+                sendMessage(mMessageHandler, R.id.what_bt_con, bleDevice, R.id.state_discon, 0)
 
                 connect(bleDevice)
 
@@ -196,28 +190,15 @@ class CameraPreviewActivity : Activity() {
         })
     }
 
-    fun regAll_Notify(bleDevice: BleDevice, bluetoothGatt: BluetoothGatt) {
-        for (service in bluetoothGatt.services) {
-            for (characteristic in service.characteristics) {
+//    }
 
-                val charaProp = characteristic.properties
-
-                if (charaProp and BluetoothGattCharacteristic.PROPERTY_NOTIFY > 0) {
-                    //@todo Notify
-
-                    Log.d("TAG", service.uuid.toString() + " >> " + characteristic.uuid.toString())
-                    BleManager.getInstance().notify(
-                            bleDevice,
-                            service.uuid.toString(),
-                            characteristic.uuid.toString(), MyBleNotifyCallback(characteristic))
-
-                }
-
-            }
-        }
-
-    }
-
+    /**
+     * Identify the notification received from the BLE device, and parse the weight from the transmitted data.
+     *
+     * With the help of [convertToWeight] function, the weight can be calculated.
+     * With the help of [getWeightState] function, the scale state can be obtained.
+     *
+     */
     internal fun regNotify(isStop: Boolean, bleDevice: BleDevice, characteristic: BluetoothGattCharacteristic) =
             if (!isStop) {
                 BleManager.getInstance().notify(
@@ -227,19 +208,19 @@ class CameraPreviewActivity : Activity() {
                         object : BleNotifyCallback() {
                             var isScaleEmpty = true
                             override fun onNotifySuccess() {
-                                sendMessage(mCameraHandler2, R.id.what_bt_con, bleDevice, R.id.state_succ, 0)
+                                sendMessage(mMessageHandler, R.id.what_bt_con, bleDevice, R.id.state_succ, 0)
 
                             }
 
                             override fun onNotifyFailure(exception: BleException) {
                                 //runOnUiThread { addText(tv_msg, exception.toString()) }
-                                sendMessage(mCameraHandler2, R.id.what_bt_con, bleDevice, R.id.state_funcfail, 0)
+                                sendMessage(mMessageHandler, R.id.what_bt_con, bleDevice, R.id.state_funcfail, 0)
 
                             }
 
                             override fun onCharacteristicChanged(data: ByteArray) {
                                 val weight = convertToWeight(characteristic.value)
-                                val state = getWeightStat(characteristic.value)
+                                val state = getWeightState(characteristic.value)
 
                                 when (state) {
                                 /*
@@ -250,35 +231,23 @@ class CameraPreviewActivity : Activity() {
                                 * */
                                     0x02 -> {
                                         if (isScaleEmpty) {
-                                            sendMessage(mCameraHandler2, R.id.what_weight, weight, R.id.state_start, 0)
+                                            sendMessage(mMessageHandler, R.id.what_weight, weight, R.id.state_start, 0)
                                             isScaleEmpty = false
                                         } else {
-                                            sendMessage(mCameraHandler2, R.id.what_weight, weight, R.id.state_progress, 0)
+                                            sendMessage(mMessageHandler, R.id.what_weight, weight, R.id.state_progress, 0)
                                         }
                                     }
                                     0x22 -> {
-                                        sendMessage(mCameraHandler2, R.id.what_weight, weight, R.id.state_succ, 0)
+                                        sendMessage(mMessageHandler, R.id.what_weight, weight, R.id.state_succ, 0)
                                     }
                                     0x82 -> {
-                                        sendMessage(mCameraHandler2, R.id.what_weight, weight, R.id.state_leave_without_stable_value, 0)
+                                        sendMessage(mMessageHandler, R.id.what_weight, weight, R.id.state_leave_without_stable_value, 0)
                                     }
                                     0xa2 -> {
                                         isScaleEmpty = true
-                                        sendMessage(mCameraHandler2, R.id.what_weight, weight, R.id.state_leave, 0)
+                                        sendMessage(mMessageHandler, R.id.what_weight, weight, R.id.state_leave, 0)
                                     }
                                 }
-
-
-                                //addText(tv_msg, weight.toString())
-                                //pd.dismiss();
-
-//                                if (weight > 0) {
-//                                    runOnUiThread {
-//                                        Toast.makeText(this@CameraPreviewActivity, weight.toString(), Toast.LENGTH_LONG).show()
-//                                        pd.dismiss();
-//
-//                                    }
-//                                }
 
 
                             }
@@ -292,40 +261,11 @@ class CameraPreviewActivity : Activity() {
 
             }
 
-    internal fun addText(txt: TextView, text: String) {
-        txt.append(text + "\n")
+//    }
 
-        // pd.setMessage(text)
-        // pd.show()
-        Log.d(TAG, text)
-
-
-    }
-
-    override fun onResume() {
-        super.onResume()
-        Log.d(TAG, "onResume")
-        startBackgroundThread()
-        mCamera = DemoCamera(mOnImageAvailableListener, mCameraHandler, mTextureView)
-
-        if (mTextureView.isAvailable) {
-            startCameraPreview(mTextureView.width, mTextureView.height)
-
-        } else {
-            mTextureView.surfaceTextureListener = mSurfaceTextureListener
-        }
-        // mCameraThread2 = CaptureThread(baseContext, mCameraHandler2, mTextureView, wshelper)
-
-    }
-
-    override fun onPause() {
-        Log.d(TAG, "onPause")
-        stopBackgroundThread()
-        Log.d(TAG, "stopBackgroundThread")
-
-        super.onPause()
-    }
-
+    /**
+     * When [TextureView] is available, start CameraPreview and [mCaptureThread].
+     */
     private val mSurfaceTextureListener = object : TextureView.SurfaceTextureListener {
         override fun onSurfaceTextureSizeChanged(surface: SurfaceTexture?, width: Int, height: Int) {
             Log.d(TAG, "onSurfaceTextureSizeChanged, width: $width, height: $height")
@@ -337,12 +277,12 @@ class CameraPreviewActivity : Activity() {
             startCameraPreview(width, height)
 
             initThread(this@CameraPreviewActivity)
-            mCameraThread2.start()
+            mCaptureThread.start()                                   //  start the capture thread.
         }
 
         override fun onSurfaceTextureUpdated(surface: SurfaceTexture?) {
             //Log.d(TAG, "onSurfaceTextureUpdated")
-            //var bitmap: Bitmap = mTextureView.getBitmap()
+            //var bitmap: Bitmap = texture.getBitmap()
             //Log.d("onSurfaceTextureUpdated",""+bitmap.height)
 
 
@@ -362,12 +302,12 @@ class CameraPreviewActivity : Activity() {
     }
 
     private fun startBackgroundThread() {
-        mCameraThread = HandlerThread("CameraBackground")
-        mCameraThread.start()
-        mCameraHandler = object : Handler(mCameraThread.looper) {
+        mBackgroundThread = HandlerThread("CameraBackground")
+        mBackgroundThread.start()
+        mBackgroundHandler = object : Handler(mBackgroundThread.looper) {
             override fun handleMessage(msg: Message) {
 
-                Log.d("mCameraHandler", "+++>>>" + msg.toString())
+                Log.d("mBackgroundHandler", "+++>>>" + msg.toString())
 
             }
         }
@@ -398,36 +338,40 @@ class CameraPreviewActivity : Activity() {
 
         try {
             continua = false
-            mCameraThread.quitSafely()
-            mCameraThread2.join()
+            mBackgroundThread.quitSafely()
+            mCaptureThread.join()
 
-            mCameraThread.join()
-            mCameraThread2.stop();
+            mBackgroundThread.join()
+            mCaptureThread.stop()
         } catch (ex: InterruptedException) {
             Log.d("stopBackgroundThread", "InterruptedException")
             ex.printStackTrace()
         }
     }
 
-    private val mOnImageAvailableListener = ImageReader.OnImageAvailableListener { reader ->
-        Log.d(TAG, "Image available now")
-        // Do whatever you want here with the new still picture.
-        /*
-        val image = reader.acquireLatestImage()
-        val imageBuf = image.planes[0].buffer
-        val imageBytes = ByteArray(imageBuf.remaining())
-        imageBuf.get(imageBytes)
-        image.close()
-        Log.d(TAG, "Still image size: ${imageBytes.size}")
-        */
-    }
+//    private val mOnImageAvailableListener = ImageReader.OnImageAvailableListener { reader ->
+//        Log.d(TAG, "Image available now")
+//        // Do whatever you want here with the new still picture.
+//        /*
+//        val image = reader.acquireLatestImage()
+//        val imageBuf = image.planes[0].buffer
+//        val imageBytes = ByteArray(imageBuf.remaining())
+//        imageBuf.get(imageBytes)
+//        image.close()
+//        Log.d(TAG, "Still image size: ${imageBytes.size}")
+//        */
+//    }
 
     /**
-     * Initialize the {@code CaptureThread}
+     * Initialize the [CaptureThread]
      */
     fun initThread(context: Context) {
-        //mCameraThread2.run()
-        mCameraThread2 = CaptureThread(context, mCameraHandler2, mTextureView, wshelper)
+        //mCaptureThread.run()
+        mCaptureThread = CaptureThread(context, mMessageHandler, texture, wshelper)
 
+    }
+
+    companion object {
+        private val TAG = CameraPreviewActivity::class.java.simpleName
     }
 }

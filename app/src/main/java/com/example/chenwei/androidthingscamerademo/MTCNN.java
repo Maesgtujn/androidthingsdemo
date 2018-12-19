@@ -206,7 +206,7 @@ public class MTCNN {
             //(2)RUN CNN
             int PNetOutSizeW=(int)(Math.ceil(w*0.5-5)+0.5);
             int PNetOutSizeH=(int)(Math.ceil(h*0.5-5)+0.5);
-            float[][]   PNetOutProb=new float[PNetOutSizeH][PNetOutSizeW];;
+            float[][]   PNetOutProb=new float[PNetOutSizeH][PNetOutSizeW];
             float[][][] PNetOutBias=new float[PNetOutSizeH][PNetOutSizeW][4];
             PNetForward(bm,PNetOutProb,PNetOutBias);
             //(3)数据解析
@@ -279,7 +279,7 @@ public class MTCNN {
             crop_and_resize(bitmap,boxes.get(i),24,curCrop);
             Utils.flip_diag(curCrop,24,24,3);
             //Log.i(TAG,"[*]Pixels values:"+curCrop[0]+" "+curCrop[1]);
-            for (int j=0;j<curCrop.length;j++) RNetIn[RNetInIdx++]= curCrop[j];
+            for (float aCurCrop : curCrop) RNetIn[RNetInIdx++] = aCurCrop;
         }
         //Run RNet
         RNetForward(RNetIn,boxes);
@@ -334,7 +334,7 @@ public class MTCNN {
         for (int i=0;i<num;i++){
             crop_and_resize(bitmap,boxes.get(i),48,curCrop);
             Utils.flip_diag(curCrop,48,48,3);
-            for (int j=0;j<curCrop.length;j++) ONetIn[ONetInIdx++]= curCrop[j];
+            for (float aCurCrop : curCrop) ONetIn[ONetInIdx++] = aCurCrop;
         }
         //Run ONet
         ONetForward(ONetIn,boxes);

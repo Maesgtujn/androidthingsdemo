@@ -17,9 +17,6 @@ import java.util.UUID;
  */
 
 public class MISCALEConnectUtil {
-    static String service_uuid = "0000181d-0000-1000-8000-00805f9b34fb";
-    static String characteristic_uuid = "00002a9d-0000-1000-8000-00805f9b34fb";
-    static String TAG = "MISCALEConnectUtil";
 
     /**
      * 体重秤传回数据解析为体重数值（公斤）
@@ -32,6 +29,7 @@ public class MISCALEConnectUtil {
             return -1;  //数据异常返回-1
         double weight = ((((data[2] & 0xFF) << 8) + (data[1] & 0xFF)) / 200.0);
         //mWeigthText.setText(getString(R.string.show_kg, weight));
+        String TAG = "MISCALEConnectUtil";
         Log.d(TAG, HexUtil.formatHexString(data));
         Log.d(TAG, "data[0]:" + byte2bits(data[0]));
         int aa = (data[0] & 0xFF);
@@ -44,16 +42,15 @@ public class MISCALEConnectUtil {
 
     }
 
-    static public int getWeightStat(byte[] data) {
+    static public int getWeightState(byte[] data) {
         /*
 * 02 -> 有负载，非稳定结果，测量中
 * 22 -> 有负载，稳定结果
 * 82 -> 离开，此次测量无稳定结果
 * a2 -> 离开，此次测量有稳定结果
 * */
-        int flag = data[0] & 0xFF;
 
-        return flag;
+        return data[0] & 0xFF;
     }
 
     public static String byte2bits(byte b) {
@@ -70,7 +67,9 @@ public class MISCALEConnectUtil {
     }
 
     public static BluetoothGattCharacteristic getCharacteristic(final BluetoothGatt bluetoothGatt) {
+        String service_uuid = "0000181d-0000-1000-8000-00805f9b34fb";
         BluetoothGattService service = bluetoothGatt.getService(UUID.fromString(service_uuid));
+        String characteristic_uuid = "00002a9d-0000-1000-8000-00805f9b34fb";
         BluetoothGattCharacteristic characteristic = service.getCharacteristic(UUID.fromString(characteristic_uuid));
         return characteristic;
     }

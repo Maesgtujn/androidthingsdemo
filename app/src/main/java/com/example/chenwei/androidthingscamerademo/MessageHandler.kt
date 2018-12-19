@@ -13,27 +13,26 @@ import java.util.*
 /**
  * Created by williamsha on 2018/11/22.
  */
-internal class CamHandler(activity: CameraPreviewActivity) : Handler() {
-    var mActivity: WeakReference<CameraPreviewActivity>
+internal class MessageHandler (activity: CameraPreviewActivity) : Handler() {
+    private var mActivity: WeakReference<CameraPreviewActivity> = WeakReference(activity)
     private val UNKOWN_NAME = "Unknown"
     private var unknowCount: Int = 0
     private val UNKOWN_COUNT_MAX = 10
 
-    var myWeight: Double = 0.0
-    var myAccount: String = ""
+    private var myWeight: Double = 0.0
+    private var myAccount: String = ""
 
-    var theActivity: CameraPreviewActivity?
-    var pd: ProgressDialog
+    private val theActivity: CameraPreviewActivity?
+    private var pd: ProgressDialog
 
     init {
-        mActivity = WeakReference<CameraPreviewActivity>(activity)
         theActivity = mActivity.get()
 
         pd = ProgressDialog(theActivity)
 
     }
 
-    fun trySaveWeightAndAccount() {
+    private fun trySaveWeightAndAccount() {
         if (myWeight != 0.0 && myAccount != "") {
             Toast.makeText(theActivity, myAccount + "体重：" + myWeight, Toast.LENGTH_LONG).show()
             myWeight = 0.0
@@ -41,11 +40,11 @@ internal class CamHandler(activity: CameraPreviewActivity) : Handler() {
         }
     }
 
-    fun setThreadIdle() {
-        theActivity!!.mCameraThread2.setdetectorType(R.id.what_idle)
-        theActivity!!.tv_mode.setText(R.string.mode_idle)
-        theActivity!!.tv_hint.setText(R.string.hint)
-        theActivity!!.mDraw.clear()
+    private fun setThreadIdle() {
+        theActivity!!.mCaptureThread.detectorType = R.id.what_idle
+        theActivity.tv_mode.setText(R.string.mode_idle)
+        theActivity.tv_hint.setText(R.string.hint)
+        theActivity.draw.clear()
     }
 
     override fun handleMessage(msg: Message?) {
@@ -53,32 +52,32 @@ internal class CamHandler(activity: CameraPreviewActivity) : Handler() {
         val count = msg.arg2
         when (msg.what) {
             R.id.what_weight -> {
-                var tmpWeight: Double = msg.obj as Double
+                val tempWeight: Double = msg.obj as Double
                 when (state) {
 
                     R.id.state_start -> {
-                        theActivity!!.tv_weight.setText(">>>")
-                        theActivity!!.mCameraThread2.setdetectorType(R.id.what_facenet_identify)
+                        theActivity!!.tv_weight.text = ">>>"
+                        theActivity.mCaptureThread.detectorType = R.id.what_facenet_identify
                     }
                     R.id.state_succ -> {
-                        theActivity!!.tv_weight.setText("= " + tmpWeight)
-                        myWeight = tmpWeight
+                        theActivity!!.tv_weight.text = "= $tempWeight"
+                        myWeight = tempWeight
                         trySaveWeightAndAccount()
 
                     }
 
                     R.id.state_progress -> {
-                        theActivity!!.tv_weight.setText("~ " + tmpWeight)
+                        theActivity!!.tv_weight.text = "~ $tempWeight"
 
                     }
                     R.id.state_leave -> {
-                        theActivity!!.tv_weight.setText("...")
+                        theActivity!!.tv_weight.text = "..."
                         myWeight = 0.0
                         setThreadIdle()
 
                     }
                     R.id.state_leave_without_stable_value -> {
-                        theActivity!!.tv_weight.setText("...")
+                        theActivity!!.tv_weight.text = "..."
                         myWeight = 0.0
                         setThreadIdle()
                     }
@@ -89,14 +88,14 @@ internal class CamHandler(activity: CameraPreviewActivity) : Handler() {
 
                     R.id.state_start -> {
 
-                        theActivity!!.tv_bt.setText(theActivity!!.getText(R.string.connecting))
+                        theActivity!!.tv_bt.text = theActivity.getText(R.string.connecting)
                     }
                     R.id.state_succ -> {
-                        theActivity!!.tv_bt.setText(theActivity!!.getText(R.string.connected))
+                        theActivity!!.tv_bt.text = theActivity.getText(R.string.connected)
 
                     }
                     R.id.state_fail -> {
-                        theActivity!!.tv_bt.setText(theActivity!!.getText(R.string.connect_fail))
+                        theActivity!!.tv_bt.text = theActivity.getText(R.string.connect_fail)
                     }
 
                     R.id.state_progress -> {
@@ -104,10 +103,10 @@ internal class CamHandler(activity: CameraPreviewActivity) : Handler() {
 
                     }
                     R.id.state_discon -> {
-                        theActivity!!.tv_bt.setText(theActivity!!.getText(R.string.disconnected))
+                        theActivity!!.tv_bt.text = theActivity.getText(R.string.disconnected)
                     }
                     R.id.state_funcfail -> {
-                        theActivity!!.tv_bt.setText(theActivity!!.getText(R.string.con_func_fail))
+                        theActivity!!.tv_bt.text = theActivity.getText(R.string.con_func_fail)
                     }
                 }
             }
@@ -116,20 +115,20 @@ internal class CamHandler(activity: CameraPreviewActivity) : Handler() {
 
                     R.id.state_start -> {
 
-                        theActivity!!.tv_ws.setText(theActivity!!.getText(R.string.connecting))
+                        theActivity!!.tv_ws.text = theActivity.getText(R.string.connecting)
                     }
                     R.id.state_succ -> {
-                        theActivity!!.tv_ws.setText(theActivity!!.getText(R.string.connected))
+                        theActivity!!.tv_ws.text = theActivity.getText(R.string.connected)
 
                     }
                     R.id.state_fail -> {
-                        theActivity!!.tv_ws.setText(theActivity!!.getText(R.string.connect_fail))
+                        theActivity!!.tv_ws.text = theActivity.getText(R.string.connect_fail)
                     }
 
                     R.id.state_progress -> {
                     }
                     R.id.state_discon -> {
-                        theActivity!!.tv_ws.setText(theActivity!!.getText(R.string.disconnected))
+                        theActivity!!.tv_ws.text = theActivity.getText(R.string.disconnected)
                     }
                 }
             }
@@ -139,28 +138,28 @@ internal class CamHandler(activity: CameraPreviewActivity) : Handler() {
                     R.id.state_start -> {
                         //画扫扫描框
 
-                        theActivity!!.mDraw.drawRectQR()
+                        theActivity!!.draw.drawRectQR()
 
-                        theActivity!!.mTvHint.setText(R.string.qrcode_start)
-                        theActivity!!.mTvMsg.setText("")
-                        theActivity!!.mTvPerson.setText("")
-                        theActivity!!.mTvMode.setText("qrcode")
+                        theActivity.tv_hint.setText(R.string.qrcode_start)
+                        theActivity.tv_msg.text = ""
+                        theActivity.tv_person.text = ""
+                        theActivity.tv_mode.text = R.string.qrcode_string.toString()
 
                     }
                     R.id.state_succ -> {
-                        theActivity!!.mTvHint.setText(R.string.qrcode_succ)
-                        theActivity!!.mTvMsg.text = msg.obj as String
-                        theActivity!!.mCameraThread2.setdetectorType(R.id.what_facenet_regadd)
+                        theActivity!!.tv_hint.setText(R.string.qrcode_succ)
+                        theActivity.tv_msg.text = msg.obj as String
+                        theActivity.mCaptureThread.detectorType = R.id.what_facenet_regadd
 
                     }
                     R.id.state_fail -> {
-                        theActivity!!.mTvHint.setText(R.string.qrcode_fail)
-                        theActivity!!.mCameraThread2.setdetectorType(R.id.what_facenet_identify)
-                        theActivity!!.mTvMsg.setText("")
+                        theActivity!!.tv_hint.setText(R.string.qrcode_fail)
+                        theActivity.mCaptureThread.detectorType = R.id.what_facenet_identify
+                        theActivity.tv_msg.text = ""
 
                     }
 
-                    R.id.state_progress -> theActivity!!.mTvMsg.setText(theActivity!!.getString(R.string.qrcode_progress) + count + "/25")
+                    R.id.state_progress -> theActivity!!.tv_msg.text = theActivity.getString(R.string.qrcode_progress) + count + "/25"
 
                 }
 
@@ -170,12 +169,12 @@ internal class CamHandler(activity: CameraPreviewActivity) : Handler() {
             R.id.what_mtcnn -> {
                 if (state == R.id.state_succ) {
                     val boxes: Vector<Box> = msg.obj as Vector<Box>
-                    theActivity!!.mDraw.draw(boxes)
+                    theActivity!!.draw.draw(boxes)
                     if (boxes.size == 0) {
                         unknowCount = 0
-                        theActivity!!.mTvMsg.setText("...")
-                        theActivity!!.mTvPerson.setText("...")
-                        theActivity!!.mTvHint.setText("近一些...")
+                        theActivity.tv_msg.text = "..."
+                        theActivity.tv_person.text = "..."
+                        theActivity.tv_hint.text = "近一些..."
 
 
                     }
@@ -184,12 +183,12 @@ internal class CamHandler(activity: CameraPreviewActivity) : Handler() {
             }
             R.id.what_facenet_identify -> {
                 try {
-                    if (theActivity!!.mCameraThread2.getDetectorType() == R.id.what_facenet_identify)
+                    if (theActivity!!.mCaptureThread.detectorType == R.id.what_facenet_identify)
                         when (state) {
                             R.id.state_start -> {
                                 //unknowCount = 0
-                                theActivity!!.mTvHint.setText(R.string.facenet_identify_start)
-                                theActivity!!.mTvMode.setText(R.string.mode_face_idtf)
+                                theActivity.tv_hint.setText(R.string.facenet_identify_start)
+                                theActivity.tv_mode.setText(R.string.mode_face_idtf)
                                 myAccount = ""
 
                                 //Toast.makeText(this@CameraPreviewActivity, R.string.facenet_identify_start, Toast.LENGTH_SHORT).show()
@@ -197,7 +196,7 @@ internal class CamHandler(activity: CameraPreviewActivity) : Handler() {
 
                             }
                             R.id.state_succ -> {
-                                theActivity!!.mTvHint.setText(R.string.facenet_identify_succ)
+                                theActivity.tv_hint.setText(R.string.facenet_identify_succ)
                                 val jsonPersons: JSONArray = msg.obj as JSONArray
                                 var text = ""
                                 for (i in 1..jsonPersons.length()) {
@@ -211,25 +210,25 @@ internal class CamHandler(activity: CameraPreviewActivity) : Handler() {
                                         trySaveWeightAndAccount()
                                     }
 
-                                    text = text + String.format("%n %s  @ %.2f %s", name, 100 * jsonPerson.getDouble("prob"), jsonPerson.getString("emotion"))
+                                    text += String.format("%n %s  @ %.2f %s", name, 100 * jsonPerson.getDouble("prob"), jsonPerson.getString("emotion"))
                                 }
 
-                                theActivity!!.mTvPerson.text = text
+                                theActivity.tv_person.text = text
                                 if (unknowCount > 0)
-                                    theActivity!!.mTvMsg.setText("Unknow:" + unknowCount)
+                                    theActivity.tv_msg.text = "Unknow:" + unknowCount
                                 else
-                                    theActivity!!.mTvMsg.setText("")
+                                    theActivity.tv_msg.text = ""
                                 if (unknowCount > UNKOWN_COUNT_MAX) {
                                     unknowCount = 0
-                                    theActivity!!.mCameraThread2.setdetectorType(R.id.what_qrcode)
+                                    theActivity.mCaptureThread.detectorType = R.id.what_qrcode
                                 }
                             }
 
                             R.id.state_fail -> {
-                                theActivity!!.mTvHint.setText(R.string.facenet_identify_fail)
+                                theActivity.tv_hint.setText(R.string.facenet_identify_fail)
                             }
                             R.id.state_progress -> {
-                                theActivity!!.mTvMsg.text = "..."
+                                theActivity.tv_msg.text = "..."
                             }
                         }
 
@@ -241,20 +240,20 @@ internal class CamHandler(activity: CameraPreviewActivity) : Handler() {
             R.id.what_facenet_regadd -> {
                 when (state) {
                     R.id.state_start -> {
-                        theActivity!!.mTvHint.setText(R.string.facenet_add_start)
-                        theActivity!!.mTvMode.setText("facenet_regadd")
-                        theActivity!!.mTvMsg.setText("")
-                        theActivity!!.mTvPerson.setText("")
+                        theActivity!!.tv_hint.setText(R.string.facenet_add_start)
+                        theActivity.tv_mode.text = "facenet_regadd"
+                        theActivity.tv_msg.text = ""
+                        theActivity.tv_person.text = ""
 
                     }
                     R.id.state_succ -> {
-                        theActivity!!.mTvHint.setText(R.string.facenet_add_succ)
+                        theActivity!!.tv_hint.setText(R.string.facenet_add_succ)
 
                     }
 
                     R.id.state_fail -> {
                     }
-                    R.id.state_progress -> theActivity!!.mTvMsg.setText("已采集图像：" + count)
+                    R.id.state_progress -> theActivity!!.tv_msg.text = "已采集图像：" + count
                 }
 
             }
@@ -262,29 +261,29 @@ internal class CamHandler(activity: CameraPreviewActivity) : Handler() {
                 when (state) {
 
                     R.id.state_start -> {
-                        theActivity!!.mCameraThread2.setdetectorType(R.id.what_idle)
-                        theActivity!!.mTvMode.setText("facenet_validate")
-                        theActivity!!.mTvMsg.setText("")
-                        theActivity!!.mTvPerson.setText("")
-                        theActivity!!.pd = ProgressDialog.show(theActivity, "facenet_validate", theActivity!!.getString(R.string.facenet_validate_start));
-                        theActivity!!.mTvHint.setText(R.string.facenet_validate_start)
+                        theActivity!!.mCaptureThread.detectorType = R.id.what_idle
+                        theActivity.tv_mode.text = "facenet_validate"
+                        theActivity.tv_msg.text = ""
+                        theActivity.tv_person.text = ""
+                        theActivity.pd = ProgressDialog.show(theActivity, "facenet_validate", theActivity.getString(R.string.facenet_validate_start))
+                        theActivity.tv_hint.setText(R.string.facenet_validate_start)
                     }
                     R.id.state_succ -> {
                         theActivity!!.pd.dismiss()
-                        theActivity!!.mTvHint.setText(R.string.facenet_validate_succ)
-                        theActivity!!.mCameraThread2.setdetectorType(R.id.what_facenet_identify)
+                        theActivity.tv_hint.setText(R.string.facenet_validate_succ)
+                        theActivity.mCaptureThread.detectorType = R.id.what_facenet_identify
                         Toast.makeText(theActivity, "注册成功", Toast.LENGTH_LONG).show()
 
                     }
                     R.id.state_fail -> {
                         pd.dismiss()
-                        theActivity!!.mTvHint.setText(R.string.facenet_validate_fail)
-                        theActivity!!.mCameraThread2.setdetectorType(R.id.what_facenet_identify)
+                        theActivity!!.tv_hint.setText(R.string.facenet_validate_fail)
+                        theActivity.mCaptureThread.detectorType = R.id.what_facenet_identify
                         Toast.makeText(theActivity, "注册失败", Toast.LENGTH_LONG).show()
 
                     }
                     R.id.state_progress -> {
-                        theActivity!!.mTvHint.setText(R.string.facenet_validate_progress)
+                        theActivity!!.tv_hint.setText(R.string.facenet_validate_progress)
                     }
 
                 }
@@ -297,4 +296,4 @@ internal class CamHandler(activity: CameraPreviewActivity) : Handler() {
         //}
         }
     }
-};
+}
