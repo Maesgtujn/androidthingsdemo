@@ -56,7 +56,7 @@ class CameraPreviewActivity : Activity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_camera_preview)
 
-        tv_mode.setText(R.string.mode_idle)
+//        tv_mode.setText(R.string.mode_idle)
         tv_weight.text = "..."
 
         BleManager.getInstance().init(application)                  //  start bluetooth service
@@ -180,11 +180,6 @@ class CameraPreviewActivity : Activity() {
 
                 connect(bleDevice)
 
-//                if (isActiveDisConnected) {
-//                    Toast.makeText(this@CameraPreviewActivity, getString(R.string.active_disconnected), Toast.LENGTH_LONG).show()
-//                } else {
-//                    Toast.makeText(this@CameraPreviewActivity, getString(R.string.disconnected), Toast.LENGTH_LONG).show()
-//                }
 
             }
         })
@@ -276,23 +271,28 @@ class CameraPreviewActivity : Activity() {
             Log.d(TAG, "onSurfaceTextureAvailable, width: $width, height: $height")
             startCameraPreview(width, height)
 
+            /* Initialize the capture thread(face recognition and scan QR code) */
+
             initThread(this@CameraPreviewActivity)
-            mCaptureThread.start()                                   //  start the capture thread.
+
         }
 
         override fun onSurfaceTextureUpdated(surface: SurfaceTexture?) {
-            //Log.d(TAG, "onSurfaceTextureUpdated")
-            //var bitmap: Bitmap = texture.getBitmap()
-            //Log.d("onSurfaceTextureUpdated",""+bitmap.height)
-
-
-            //faceDetector(bitmap,2)
         }
 
         override fun onSurfaceTextureDestroyed(surface: SurfaceTexture?): Boolean {
             Log.d(TAG, "onSurfaceTextureDestroyed")
             return true
         }
+    }
+
+    /**
+     * Initialize the [CaptureThread]
+     */
+    fun initThread(context: Context) {
+
+        mCaptureThread = CaptureThread(context, mMessageHandler, texture, wshelper)
+        mCaptureThread.start()
     }
 
     private fun startCameraPreview(width: Int, height: Int) {
@@ -348,7 +348,6 @@ class CameraPreviewActivity : Activity() {
             ex.printStackTrace()
         }
     }
-
 //    private val mOnImageAvailableListener = ImageReader.OnImageAvailableListener { reader ->
 //        Log.d(TAG, "Image available now")
 //        // Do whatever you want here with the new still picture.
@@ -360,16 +359,8 @@ class CameraPreviewActivity : Activity() {
 //        image.close()
 //        Log.d(TAG, "Still image size: ${imageBytes.size}")
 //        */
+
 //    }
-
-    /**
-     * Initialize the [CaptureThread]
-     */
-    fun initThread(context: Context) {
-        //mCaptureThread.run()
-        mCaptureThread = CaptureThread(context, mMessageHandler, texture, wshelper)
-
-    }
 
     companion object {
         private val TAG = CameraPreviewActivity::class.java.simpleName

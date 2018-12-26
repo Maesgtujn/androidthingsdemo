@@ -30,6 +30,8 @@ class DemoCamera(
     private var mCaptureSessionForImage: CameraCaptureSession? = null
     private var mPreviewSize: Size? = null
     private var mFlashSupported = false
+
+    private var mRequestAvailableCapabilities: IntArray = kotlin.IntArray(0)
     private var mSupportedAFModes: IntArray = kotlin.IntArray(0)
     private var mSupportedAEModes: IntArray = kotlin.IntArray(0)
     private var mPreviewRequestBuilder: CaptureRequest.Builder? = null
@@ -207,11 +209,15 @@ class DemoCamera(
             mSupportedAFModes.forEach {
                 Log.d(TAG, "Supported camera AF MODE: $it")
             }
+
             mSupportedAEModes = characteristics.get(CameraCharacteristics.CONTROL_AE_AVAILABLE_MODES)
             mSupportedAEModes.forEach {
                 Log.d(TAG, "Supported camera AE MODE: $it")
             }
-
+            mRequestAvailableCapabilities = characteristics.get(CameraCharacteristics.REQUEST_AVAILABLE_CAPABILITIES)
+            mRequestAvailableCapabilities.forEach {
+                Log.d(TAG, "Request available capabilities: $it")
+            }
             mCameraId = id
         } catch (ex: CameraAccessException) {
             ex.printStackTrace()

@@ -21,28 +21,38 @@ import static com.example.chenwei.androidthingscamerademo.Utils.sendMessage;
  */
 
 public class CaptureThread extends Thread {
-    static String TAG = "CaptureThread";
-    boolean continua = false;
+    private final static String TAG = "CaptureThread";
+
     private Handler mHandler;
-//    private Context mContext;
-    private WebSocketHelper wshelper;
+    private WebSocketHelper wsHelper;
     private MTCNN mtcnn;
+
+    private boolean continua = false;
     private int detectorType;
     private int count = 0;
+
     private TextureView mTextureView;
 
+    /**
+     * @param context
+     * @param handler
+     * @param textureView
+     * @param wsHelper
+     */
     public CaptureThread(Context context, Handler handler, TextureView textureView, WebSocketHelper wsHelper) {
-//        this.mContext = context;
+
         this.mHandler = handler;
+        this.wsHelper = wsHelper;
         this.mTextureView = textureView;
-        this.wshelper = wsHelper;
+
         mtcnn = new MTCNN(context.getAssets());
-        //detectorType = R.id.what_facenet_identify;
+
         detectorType = R.id.what_idle;
     }
 
     /**
      * The method
+     *
      * @param type
      */
     public void setDetectorType(int type) {
@@ -51,7 +61,8 @@ public class CaptureThread extends Thread {
             count = 0;
         }
     }
-    public int getDetectorType(){
+
+    public int getDetectorType() {
         return detectorType;
     }
 
@@ -67,7 +78,7 @@ public class CaptureThread extends Thread {
         ArrayList<Bitmap> regBitmaps = new ArrayList<>();
         String qr_code = "";
         while (continua) {
-            if (mTextureView != null && detectorType!=R.id.what_idle) {
+            if (mTextureView != null && detectorType != R.id.what_idle) {
                 Log.d(TAG, "processImage:start");
 
                 bitmap = mTextureView.getBitmap();
@@ -120,7 +131,7 @@ public class CaptureThread extends Thread {
                                     bitmaps.add(getMarginBitmap(boxes.get(i), bm));
                                 }
                                 sendMessage(mHandler, R.id.what_facenet_identify, boxes, R.id.state_start, boxes.size());
-                                wshelper.sendReq(bitmaps, ACTION_TYPE_identify_no_mtcnn, null);
+                                wsHelper.sendReq(bitmaps, ACTION_TYPE_identify_no_mtcnn, null);
                                 //what_facenet_identify  state_succ,在wshelper的onMessage中主动发送给 mMessageHandler
                             }
                             break;
@@ -137,9 +148,9 @@ public class CaptureThread extends Thread {
                                 sendMessage(mHandler, R.id.what_facenet_regadd, null, R.id.state_progress, count);
 
                                 if (regBitmaps.size() == 9) {
-                                    sendMessage(mHandler, R.id.what_facenet_validate ,null, R.id.state_start, regBitmaps.size());
+                                    sendMessage(mHandler, R.id.what_facenet_validate, null, R.id.state_start, regBitmaps.size());
 
-                                    wshelper.sendReq(regBitmaps, ACTION_TYPE_validate, qr_code);
+                                    wsHelper.sendReq(regBitmaps, ACTION_TYPE_validate, qr_code);
 
                                 }
                             }

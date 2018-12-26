@@ -12,7 +12,7 @@
         android:id="@+id/TopBarLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#f67280"
+        android:background="#1976D2"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
@@ -20,10 +20,10 @@
             android:id="@+id/tv_hint"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="20sp"
+            android:layout_marginBottom="10sp"
             android:layout_marginEnd="30sp"
             android:layout_marginStart="10sp"
-            android:layout_marginTop="40sp"
+            android:layout_marginTop="20sp"
             android:letterSpacing="0.2"
             android:text="@string/hint"
             android:textColor="@android:color/white"
@@ -67,21 +67,23 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="@string/ws" />
+                    android:text="@string/ws"
+                    android:textColor="#BBDEFB"/>
 
                 <TextView
                     android:id="@+id/tv_ws"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/tv_ws"
-                    app:layout_constraintTop_toBottomOf="@+id/tv_bt" />
+                    app:layout_constraintTop_toBottomOf="@+id/tv_bt"
+                    android:textColor="#BBDEFB"/>
             </LinearLayout>
 
-            <TextView
-                android:id="@+id/tv_mode"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/mode" />
+            <!--<TextView-->
+                <!--android:id="@+id/tv_mode"-->
+                <!--android:layout_width="match_parent"-->
+                <!--android:layout_height="wrap_content"-->
+                <!--android:text="@string/mode" />-->
 
         </LinearLayout>
     </LinearLayout>
@@ -96,7 +98,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/TopBarLayout"
         app:layout_constraintVertical_bias="1.0"
-        android:background="#c06c84">
+        android:background="#2196F3">
 
         <com.example.chenwei.androidthingscamerademo.AutoFitTextureView
             android:id="@+id/texture"
@@ -127,7 +129,7 @@
         android:id="@+id/BottomBarLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#6c5b7b"
+        android:background="#FFFFFF"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent">
 
@@ -136,36 +138,51 @@
             style="@style/ResultText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent" />
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
-            style="@style/ResultText"
             android:id="@+id/tv_person"
+            style="@style/ResultText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="960dp"
+            android:layout_marginBottom="8dp"
+            android:layout_marginTop="8dp"
             app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="@+id/kg_string"
             app:layout_constraintStart_toEndOf="@+id/tv_msg"
-            app:layout_constraintStart_toStartOf="parent" />
+            app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
-            style="@style/ResultText"
             android:id="@+id/tv_weight"
+            style="@style/ResultText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginTop="8dp"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/kg_string" />
+            app:layout_constraintEnd_toStartOf="@+id/kg_string"
+            app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
             android:id="@+id/kg_string"
             style="@style/ResultText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginTop="8dp"
             android:text="@string/kg"
+            android:textColor="#757575"
             android:visibility="visible"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
     </android.support.constraint.ConstraintLayout>
 
