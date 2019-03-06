@@ -43,7 +43,7 @@ internal class MessageHandler(activity: CameraPreviewActivity) : Handler() {
     private fun trySaveWeightAndId() {
         if (weight != EMPTY_WEIGHT && employeeId != EMPTY) {
             idleThread()
-            theActivity!!.postWeight(weight, employeeId)
+            theActivity!!.postWeightTest(weight, employeeId)
             Toast.makeText(theActivity, employeeId + "体重：" + weight, Toast.LENGTH_LONG).show()
 
             weight = EMPTY_WEIGHT

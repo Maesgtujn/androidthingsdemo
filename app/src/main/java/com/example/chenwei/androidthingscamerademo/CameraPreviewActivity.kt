@@ -28,8 +28,13 @@ import kotlinx.android.synthetic.main.activity_camera_preview.*
 import okhttp3.*
 
 import org.json.JSONArray
+import org.json.JSONException
 import java.io.IOException
+import java.net.URL
 import java.util.*
+import java.util.concurrent.Callable
+import java.util.concurrent.Executors
+import java.util.concurrent.FutureTask
 import java.util.concurrent.TimeUnit
 import android.widget.Button as WidgetButton
 
@@ -331,6 +336,58 @@ class CameraPreviewActivity : Activity() {
         }
     }
 
+    fun postWeightTest(weight: Double, employeeNo: String){
+        val timeUrl = "http://www.ntsc.ac.cn"
+        val url = "http://app.mxic.com.cn:9000/ehealth/php/scales/create.php"
+
+        val request = Request.Builder()
+                .url(url)
+
+        val bodyBuilder = FormBody.Builder()
+
+        //  创建线程数量为2的线程池
+        val executor = Executors.newCachedThreadPool()
+        val futureTask = FutureTask<String>(Callable<String>{
+            try {
+                val url = URL(timeUrl)
+                val uc = url.openConnection()
+                uc.readTimeout = 5000
+                uc.connectTimeout = 5000
+                uc.connect()
+                val calendar = Calendar.getInstance()
+                calendar.timeInMillis = uc.date
+                return@Callable calendar.timeInMillis.toString()
+            } catch (e : Exception){
+                "fail"
+            }
+
+        })
+        executor.execute(futureTask)
+        executor.execute {
+            bodyBuilder
+                    .add("type", "figure")              //  fixed mark
+                    .add("employeeNo", employeeNo)
+                    .add("date", futureTask.get())
+                    .add("weight", weight.toString())
+            request.post(bodyBuilder.build())
+            Log.d(TAG, "上传时间为: " + futureTask.get())
+
+            val call = client!!.newCall(request.build())
+            try {
+                val response = call.execute()
+                val respText = response.body().string()
+                sendMessage(messageHandler, R.id.what_postWeight, respText, 0, 0)
+                Log.d(TAG, "上传体重和工号: $respText")
+            } catch (e: IOException) {
+                e.printStackTrace()
+            }
+
+        }
+
+    }
+
+
+
     /**
      * Post [weight] and [employeeNo] to the server through webSocket.
      * Receiving parameters :
@@ -394,11 +451,13 @@ class CameraPreviewActivity : Activity() {
                 val response = client!!.newCall(request)?.execute()
 
                 val jsonArray = JSONArray(response?.body()?.string())
-
+                Log.d(TAG, "getJsonArray: " + jsonArray.toString())
                 val name = jsonArray.getJSONObject(0).getString("name")
                 val text = String.format("%n %s  @ %.2f %s", name, prob, emotion)
                 sendMessage(messageHandler, R.id.what_got_uname, text, 0, 0)
             } catch (e: IOException) {
+                e.printStackTrace()
+            } catch (e: JSONException){
                 e.printStackTrace()
             }
         }).start()
