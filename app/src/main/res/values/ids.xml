@@ -35,7 +35,9 @@
     <item name="what_weight" type="id" />
 
     <item name="what_idle" type="id" />
-
+    <item name="what_got_uname" type="id" />
+    <item name="what_postWeight" type="id" />
+    <item name="what_clear_text" type="id" />
 
     <item name="state_start" type="id" />
     <item name="state_succ" type="id" />

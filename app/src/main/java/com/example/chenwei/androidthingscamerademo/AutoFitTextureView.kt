@@ -24,7 +24,7 @@ import android.view.View
 /**
  * A [TextureView] that can be adjusted to a specified aspect ratio.
  */
-class AutoFitTextureView @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null, defStyle: Int = 0)
+class  AutoFitTextureView @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null, defStyle: Int = 0)
     : TextureView(context, attrs, defStyle) {
 
     private var mRatioWidth = 0

@@ -30,7 +30,9 @@ import static com.example.chenwei.androidthingscamerademo.Utils.sendMessage;
  * Including a server and a client.
  */
 public class WebSocketHelper {
-    private static String TAG = "WebSocketHelper";
+
+    private final static String TAG = WebSocketHelper.class.getSimpleName();
+
     private OkHttpClient client;
     private WebSocketListener webSocketListener;
     private WebSocket mWebSocket;
@@ -39,8 +41,10 @@ public class WebSocketHelper {
     private Handler mHandler;
 
     public WebSocketHelper(String HOST_URL, Handler mHandler) {
+
         this.HOST_URL = HOST_URL;
         this.mHandler = mHandler;       //  message handler
+
     }
 
     public void initWs() {

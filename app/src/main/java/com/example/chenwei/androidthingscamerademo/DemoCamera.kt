@@ -2,7 +2,7 @@ package com.example.chenwei.androidthingscamerademo
 
 import android.annotation.SuppressLint
 import android.app.Activity
-import android.content.ContentValues.TAG
+
 import android.content.Context
 import android.content.res.Configuration
 import android.graphics.*
@@ -18,10 +18,7 @@ import kotlin.Comparator
 /**
  * Created by Chen Wei on 2017/12/5.
  */
-class DemoCamera(
-//        private val mImageAvailableListener: ImageReader.OnImageAvailableListener,
-                 private val mBackgroundHandler: Handler,
-                 private val mTextureView: AutoFitTextureView? = null) {
+class DemoCamera(private val mBackgroundHandler: Handler, private val mTextureView: AutoFitTextureView? = null) {
 
     private var mCameraId: String? = null
     private var mImageReader: ImageReader? = null
@@ -52,7 +49,7 @@ class DemoCamera(
     }
 
     private val mCaptureCallback = object : CameraCaptureSession.CaptureCallback() {
-        private fun progress(result: CaptureResult, session: CameraCaptureSession) {
+        private fun progress(session: CameraCaptureSession) {
             when (mState) {
                 STATE.STATE_PREVIEW -> {
                     // Nothing to do
@@ -76,11 +73,11 @@ class DemoCamera(
         }
 
         override fun onCaptureProgressed(session: CameraCaptureSession, request: CaptureRequest?, partialResult: CaptureResult) {
-            progress(partialResult, session)
+            progress(session)
         }
 
         override fun onCaptureCompleted(session: CameraCaptureSession, request: CaptureRequest?, result: TotalCaptureResult) {
-            progress(result, session)
+            progress(session)
         }
     }
 
@@ -367,6 +364,9 @@ class DemoCamera(
     }
 
     companion object {
+
+        private val TAG = DemoCamera :: class.java.simpleName
+
         const val MAX_IMAGES = 2
         // Max preview width and height is guaranteed by Camera2 API
         const val MAX_PREVIEW_WIDTH = 1920   //  1920

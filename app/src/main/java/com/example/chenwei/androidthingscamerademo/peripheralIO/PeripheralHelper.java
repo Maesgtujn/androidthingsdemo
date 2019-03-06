@@ -1,6 +1,9 @@
 package com.example.chenwei.androidthingscamerademo.peripheralIO;
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.SystemClock;
@@ -24,15 +27,15 @@ public class PeripheralHelper {
     private Gpio ledGpio;
     private Pwm bus;
     private Handler buzzerSongHandler;
-    private CameraPreviewActivity cameraPreviewActivity;
+//    private CameraPreviewActivity cameraPreviewActivity;
 
     public Gpio getLedGpio() {
         return ledGpio;
     }
     
-    public PeripheralHelper(Context context) {
+    public PeripheralHelper(final Context context) {
         PeripheralManager service = PeripheralManager.getInstance();
-        cameraPreviewActivity = (CameraPreviewActivity) context;
+//        cameraPreviewActivity = (CameraPreviewActivity) context;
         //  initialize LED and Button
         try {
             ledGpio = service.openGpio(BoardDefaults.getGPIOForLED());
@@ -46,6 +49,13 @@ public class PeripheralHelper {
                 public boolean onGpioEdge(Gpio gpio) {
                     Log.i(TAG, "GPIO changed, button pressed");
 //                    cameraPreviewActivity.startImageCapture();
+                    Intent mStartActivity = new Intent(context, CameraPreviewActivity.class);
+                    int mPendingIntentId = 123456;
+                    PendingIntent mPendingIntent = PendingIntent.getActivity(context, mPendingIntentId,
+                            mStartActivity, PendingIntent.FLAG_CANCEL_CURRENT);
+                    AlarmManager mgr = (AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
+                    mgr.set(AlarmManager.RTC, System.currentTimeMillis() + 100, mPendingIntent);
+                    System.exit(0);
                     return true;
                 }
             });

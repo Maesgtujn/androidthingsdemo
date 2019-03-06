@@ -117,9 +117,9 @@ public class CaptureThread extends Thread {
                                 }
                             }
                             break;
-
+                        //  由what_weight状态变为start触发
                         case R.id.what_facenet_identify:
-                            sendMessage(mHandler, R.id.what_mtcnn, null, R.id.state_start, 0);
+//                            sendMessage(mHandler, R.id.what_mtcnn, null, R.id.state_start, 0);
 
 
                             boxes = mtcnn.detectFaces(bm, minFaceSize);
