@@ -34,7 +34,7 @@ public class MTCNN {
     private static final String[] ONetOutName =new String[]{ "onet/prob1:0","onet/conv6-2/conv6-2:0","onet/conv6-3/conv6-3:0"};
     //安卓相关
     public  long lastProcessTime;   //最后一张图片处理的时间ms
-    private static final String TAG="MTCNN";
+    private static final String TAG= MTCNN.class.getSimpleName();
     private AssetManager assetManager;
     private TensorFlowInferenceInterface inferenceInterface;
     MTCNN(AssetManager mgr){

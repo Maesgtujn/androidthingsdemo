@@ -29,23 +29,9 @@ public class OpenBlueTask extends AsyncTask<Integer, Integer, String> {
     }
 
     @Override
-    protected void onPostExecute(String s) {
-        super.onPostExecute(s);
-        dialog.dismiss();
-        Handler handler = new Handler();
-        handler.postDelayed(runnable, delay);
-    }
-
-    @Override
     protected void onPreExecute() {
         super.onPreExecute();
         dialog.show();
-    }
-
-    @Override
-    protected void onCancelled() {
-        super.onCancelled();
-        dialog.dismiss();
     }
 
     @Override
@@ -69,5 +55,19 @@ public class OpenBlueTask extends AsyncTask<Integer, Integer, String> {
             }
         }
         return "done";
+    }
+
+    @Override
+    protected void onPostExecute(String s) {
+        super.onPostExecute(s);
+        dialog.dismiss();
+        Handler handler = new Handler();
+        handler.postDelayed(runnable, delay);
+    }
+
+    @Override
+    protected void onCancelled() {
+        super.onCancelled();
+        dialog.dismiss();
     }
 }

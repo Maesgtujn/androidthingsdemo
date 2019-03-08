@@ -93,7 +93,7 @@ public class CaptureThread extends Thread {
 
                 Log.d(TAG, "======== #" + frameCount + ",frameRate(f/s):" + frameRate);
                 try {
-                    int minFaceSize = 350;
+                    int minFaceSize = 250;              // 350
 
                     switch (detectorType) {
                         case R.id.what_qrcode:

@@ -52,11 +52,11 @@ class CameraPreviewActivity : Activity() {
 
     private lateinit var wsHelper: WebSocketHelper
 
-    private lateinit var mPeripheralHelper: PeripheralHelper
+//    private lateinit var mPeripheralHelper: PeripheralHelper
 
     private var client: OkHttpClient? = null
 
-    private var continua: Boolean = false
+//    private var continua: Boolean = false
     lateinit var pd: ProgressDialog
 
 
@@ -82,11 +82,11 @@ class CameraPreviewActivity : Activity() {
         /* Initialize a handler to handle message */
         messageHandler = MessageHandler(this)
 
-        wsHelper = WebSocketHelper("ws://192.168.164.196:8011", messageHandler)
+        wsHelper = WebSocketHelper("ws://app.mxic.com.cn:8011", messageHandler)
 
         wsHelper.initWs()                                          //   start webSocket service
 
-        mPeripheralHelper = PeripheralHelper(this)
+//        mPeripheralHelper = PeripheralHelper(this)
 
     }
 
@@ -126,7 +126,7 @@ class CameraPreviewActivity : Activity() {
 
     override fun onPause() {
         Log.d(TAG, "onPause")
-        stopBackgroundThread()
+//        stopBackgroundThread()
         Log.d(TAG, "stopBackgroundThread")
 
         super.onPause()
@@ -321,20 +321,20 @@ class CameraPreviewActivity : Activity() {
 
     }
 
-    private fun stopBackgroundThread() {
-
-        try {
-            continua = false
-            mBackgroundThread.quitSafely()
-            captureThread.join()
-
-            mBackgroundThread.join()
-            captureThread.stop()
-        } catch (ex: InterruptedException) {
-            Log.d("stopBackgroundThread", "InterruptedException")
-            ex.printStackTrace()
-        }
-    }
+//    private fun stopBackgroundThread() {
+//
+//        try {
+//            continua = false
+//            mBackgroundThread.quitSafely()
+//            captureThread.join()
+//
+//            mBackgroundThread.join()
+//            captureThread.stop()
+//        } catch (ex: InterruptedException) {
+//            Log.d("stopBackgroundThread", "InterruptedException")
+//            ex.printStackTrace()
+//        }
+//    }
 
     fun postWeightTest(weight: Double, employeeNo: String){
         val timeUrl = "http://www.ntsc.ac.cn"
@@ -345,8 +345,7 @@ class CameraPreviewActivity : Activity() {
 
         val bodyBuilder = FormBody.Builder()
 
-        //  创建线程数量为2的线程池
-        val executor = Executors.newCachedThreadPool()
+        val executor = Executors.newSingleThreadExecutor()
         val futureTask = FutureTask<String>(Callable<String>{
             try {
                 val url = URL(timeUrl)

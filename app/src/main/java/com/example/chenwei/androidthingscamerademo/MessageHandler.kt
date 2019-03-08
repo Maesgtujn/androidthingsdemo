@@ -54,8 +54,9 @@ internal class MessageHandler(activity: CameraPreviewActivity) : Handler() {
     }
 
     private fun idleThread() {
-        theActivity!!.draw.clear()
-        theActivity.captureThread.detectorType = R.id.what_idle
+        theActivity!!.captureThread.detectorType = R.id.what_idle
+        theActivity.draw.clear()
+
 
     }
 
@@ -343,6 +344,7 @@ internal class MessageHandler(activity: CameraPreviewActivity) : Handler() {
             R.id.what_clear_text -> {
                 theActivity!!.tv_person.text = EMPTY
                 theActivity.tv_hint.setText(R.string.hint)
+                theActivity.draw.clear()
             }
 
 

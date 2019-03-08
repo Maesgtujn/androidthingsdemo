@@ -164,11 +164,11 @@ public class WebSocketHelper {
             }
             jsonObject.put("data", jsonArray);
 
-            String strJSONreq = jsonObject.toString();
-            Log.d(TAG, "strJSONreq:" + strJSONreq);
+            String jsonRequest = jsonObject.toString();
+            Log.d(TAG, "jsonRequest:" + jsonRequest);
             try {
 //                返回数据将在mWebSocket.onMessage获得如果需要和请求匹配，则依据req_id即可
-                mWebSocket.send(strJSONreq);
+                mWebSocket.send(jsonRequest);
             } catch (NullPointerException e) {
                 e.printStackTrace();
             }

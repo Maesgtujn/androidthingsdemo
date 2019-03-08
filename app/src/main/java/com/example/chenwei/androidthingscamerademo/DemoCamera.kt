@@ -49,35 +49,36 @@ class DemoCamera(private val mBackgroundHandler: Handler, private val mTextureVi
     }
 
     private val mCaptureCallback = object : CameraCaptureSession.CaptureCallback() {
-        private fun progress(session: CameraCaptureSession) {
-            when (mState) {
-                STATE.STATE_PREVIEW -> {
-                    // Nothing to do
-                }
-                STATE.STATE_PICTURE_TAKEN -> {
-                    // session may not equal to mCaptureSessionForImage when take picture while
-                    // preview. In this case, leave session as it is, it will close automatically
-                    // because next call of createCaptureSession(...) will cause the previous
-                    // session to close according to the API of CameraDevice:
-                    // https://developer.android.com/reference/android/hardware/camera2/CameraDevice.html#createCaptureSession(java.util.List<android.view.Surface>, android.hardware.camera2.CameraCaptureSession.StateCallback, android.os.Handler)
-                    if (mCaptureSessionForImage == session) {
-                        Log.d(TAG, "Close take picture session: $session")
-                        session.close()
-                    }
-                    mCaptureSession = null
-                    // Reset to preview state
-                    mState = STATE.STATE_PREVIEW
-                    createPreviewSession()
-                }
-            }
-        }
+//        private fun progress(session: CameraCaptureSession) {
+////            when (mState) {
+////                STATE.STATE_PREVIEW -> {
+////                    // Nothing to do
+////                }
+////                STATE.STATE_PICTURE_TAKEN -> {
+////                    // session may not equal to mCaptureSessionForImage when take picture while
+////                    // preview. In this case, leave session as it is, it will close automatically
+////                    // because next call of createCaptureSession(...) will cause the previous
+////                    // session to close according to the API of CameraDevice:
+////                    // https://developer.android.com/reference/android/hardware/camera2/CameraDevice.html#createCaptureSession(java.util.List<android.view.Surface>, android.hardware.camera2.CameraCaptureSession.StateCallback, android.os.Handler)
+////                    if (mCaptureSessionForImage == session) {
+////                        Log.d(TAG, "Close take picture session: $session")
+////                        session.close()
+////                    }
+////                    mCaptureSession = null
+////                    // Reset to preview state
+////                    mState = STATE.STATE_PREVIEW
+////                    createPreviewSession()
+////                }
+////            }
+//        }
 
         override fun onCaptureProgressed(session: CameraCaptureSession, request: CaptureRequest?, partialResult: CaptureResult) {
-            progress(session)
+//            progress(session)
+
         }
 
         override fun onCaptureCompleted(session: CameraCaptureSession, request: CaptureRequest?, result: TotalCaptureResult) {
-            progress(session)
+//            progress(session)
         }
     }
 
