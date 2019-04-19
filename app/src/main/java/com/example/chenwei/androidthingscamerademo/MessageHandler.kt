@@ -4,7 +4,7 @@ import android.app.ProgressDialog
 import android.os.Handler
 import android.os.Message
 import android.util.Log
-import android.view.View
+
 import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_camera_preview.*
 
@@ -12,8 +12,6 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.lang.ref.WeakReference
 import java.util.*
-
-
 
 
 /**
@@ -27,11 +25,11 @@ internal class MessageHandler(activity: CameraPreviewActivity) : Handler() {
     private var employeeId: String = EMPTY
 
     private val theActivity: CameraPreviewActivity?
-    private var pd: ProgressDialog
+//    private var pd: ProgressDialog
 
     init {
         theActivity = mActivity.get()
-        pd = ProgressDialog(theActivity)
+//        pd = ProgressDialog(theActivity)
 
     }
 
@@ -43,8 +41,8 @@ internal class MessageHandler(activity: CameraPreviewActivity) : Handler() {
     private fun trySaveWeightAndId() {
         if (weight != EMPTY_WEIGHT && employeeId != EMPTY) {
             idleThread()
-            theActivity!!.postWeightTest(weight, employeeId)
-            Toast.makeText(theActivity, employeeId + "体重：" + weight, Toast.LENGTH_LONG).show()
+            theActivity!!.postWeight(weight, employeeId)
+//            Toast.makeText(theActivity, employeeId + "体重：" + weight, Toast.LENGTH_SHORT).show()
 
             weight = EMPTY_WEIGHT
             employeeId = EMPTY
@@ -54,8 +52,11 @@ internal class MessageHandler(activity: CameraPreviewActivity) : Handler() {
     }
 
     private fun idleThread() {
+        Log.d(TAG, "what_facenet_identify: idleThread")
         theActivity!!.captureThread.detectorType = R.id.what_idle
-        theActivity.draw.clear()
+        theActivity.surfaceView.clear()
+        theActivity.tv_msg.text = EMPTY
+        unknownCount = 0
 
 
     }
@@ -65,13 +66,14 @@ internal class MessageHandler(activity: CameraPreviewActivity) : Handler() {
         val count = msg.arg2
         when (msg.what) {
             R.id.what_postWeight -> {
-                Toast.makeText(theActivity, "post:" + (msg.obj as String), Toast.LENGTH_SHORT).show()
+                Toast.makeText(theActivity, "post:" + (msg.obj as String), Toast.LENGTH_SHORT)
+                        .show()
 
             }
 
+
             R.id.what_got_uname -> {
                 theActivity!!.tv_person.text = msg.obj as String
-
                 theActivity.delayClearText()
 
             }
@@ -177,11 +179,11 @@ internal class MessageHandler(activity: CameraPreviewActivity) : Handler() {
                     R.id.state_start -> {
                         //画扫扫描框
 
-                        theActivity!!.draw.drawRectQR()
+                        theActivity!!.surfaceView.drawRectQR()
 
                         theActivity.tv_hint.setText(R.string.qrcode_start)
-                        theActivity.tv_msg.visibility = View.INVISIBLE
-                        theActivity.tv_person.visibility = View.INVISIBLE
+                        theActivity.tv_msg.text = EMPTY
+                        theActivity.tv_person.text = EMPTY
 //                        theActivity.tv_mode.text = R.string.qrcode_string.toString()
 
                     }
@@ -189,23 +191,25 @@ internal class MessageHandler(activity: CameraPreviewActivity) : Handler() {
                         //@todo 工号翻译成人名
 
                         theActivity!!.tv_hint.setText(R.string.qrcode_succ)
-                        theActivity.tv_msg.text = msg.obj as String
+                        theActivity.reqName(msg.obj as String, 0.0)
+//                        theActivity.tv_msg.text = msg.obj as String
 //                        theActivity.reqName(msg.obj as String)
 
-                        theActivity.tv_msg.visibility = View.VISIBLE
-                        theActivity.captureThread.detectorType = R.id.what_facenet_regadd
+//                        theActivity.tv_msg.visibility = View.VISIBLE
+//                        theActivity.captureThread.detectorType = R.id.what_facenet_regadd
 
                     }
                     R.id.state_fail -> {
                         theActivity!!.tv_hint.setText(R.string.qrcode_fail)
-                        theActivity.captureThread.detectorType = R.id.what_facenet_identify
-                        theActivity.tv_msg.visibility = View.INVISIBLE
+//                        theActivity.captureThread.detectorType = R.id.what_facenet_identify
+                        theActivity.tv_msg.text = EMPTY
 
                     }
 
                     R.id.state_progress -> {
-                        theActivity!!.tv_msg.text = theActivity.getString(R.string.qrcode_progress) + count + "/25"
-                        theActivity.tv_msg.visibility = View.VISIBLE
+                        if (theActivity!!.captureThread.detectorType == R.id.what_qrcode)
+                            theActivity.tv_msg.text = theActivity.getString(R.string.qrcode_progress) + count + "/25"
+//                        theActivity.tv_msg.visibility = View.VISIBLE
                     }
 
                 }
@@ -216,7 +220,7 @@ internal class MessageHandler(activity: CameraPreviewActivity) : Handler() {
             R.id.what_mtcnn -> {
                 if (state == R.id.state_succ) {
                     val boxes: Vector<Box> = msg.obj as Vector<Box>
-                    theActivity!!.draw.draw(boxes)
+                    theActivity!!.surfaceView.draw(boxes)
                     if (boxes.size == 0) {
                         unknownCount = 0
                         theActivity.tv_hint.text = "近一些..."
@@ -231,6 +235,7 @@ internal class MessageHandler(activity: CameraPreviewActivity) : Handler() {
                     if (theActivity!!.captureThread.detectorType == R.id.what_facenet_identify)
                         when (state) {
                             R.id.state_start -> {
+                                Log.d(TAG, "what_facenet_identify: state_start")
                                 //unknownCount = 0
                                 theActivity.tv_hint.setText(R.string.facenet_identify_start)
 //                                theActivity.tv_mode.setText(R.string.mode_face_idtf)
@@ -242,6 +247,7 @@ internal class MessageHandler(activity: CameraPreviewActivity) : Handler() {
                             }
                             R.id.state_succ -> {
                                 //@todo 工号翻译成人名
+                                Log.d(TAG, "what_facenet_identify: state_succ")
                                 theActivity.tv_hint.setText(R.string.facenet_identify_succ)
                                 val jsonPersons: JSONArray = msg.obj as JSONArray
 
@@ -253,7 +259,8 @@ internal class MessageHandler(activity: CameraPreviewActivity) : Handler() {
                                     } else {
                                         unknownCount = 0
                                         employeeId = name
-                                        theActivity.reqName(name, 100 * jsonPerson.getDouble("prob"),jsonPerson.getString("emotion"))
+                                        theActivity.reqName(name, 100 * jsonPerson.getDouble("prob"))
+//                                                jsonPerson.getString("emotion"))
                                         trySaveWeightAndId()
 
                                     }
@@ -265,9 +272,9 @@ internal class MessageHandler(activity: CameraPreviewActivity) : Handler() {
 //                                theActivity.tv_person.visibility = View.VISIBLE
                                 if (unknownCount > 0) {
                                     theActivity.tv_msg.text = "Unknown:$unknownCount"
-                                    theActivity.tv_msg.visibility = View.VISIBLE
+//                                    theActivity.tv_msg.visibility = View.VISIBLE
                                 } else
-                                    theActivity.tv_msg.visibility = View.INVISIBLE
+                                    theActivity.tv_msg.text = EMPTY
                                 if (unknownCount > MAX_UNKNOWN_COUNT) {
                                     unknownCount = 0
                                     theActivity.captureThread.detectorType = R.id.what_qrcode
@@ -278,7 +285,7 @@ internal class MessageHandler(activity: CameraPreviewActivity) : Handler() {
                                 theActivity.tv_hint.setText(R.string.facenet_identify_fail)
                             }
                             R.id.state_progress -> {
-                                theActivity.tv_msg.visibility = View.INVISIBLE
+                                theActivity.tv_msg.text = EMPTY
                             }
                         }
 
@@ -287,13 +294,13 @@ internal class MessageHandler(activity: CameraPreviewActivity) : Handler() {
                 }
             }
 
-            R.id.what_facenet_regadd -> {
+            R.id.what_facenet_register -> {
                 when (state) {
                     R.id.state_start -> {
                         theActivity!!.tv_hint.setText(R.string.facenet_add_start)
 //                        theActivity.tv_mode.text = "facenet_regadd"
-                        theActivity.tv_msg.visibility = View.INVISIBLE
-                        theActivity.tv_person.visibility = View.INVISIBLE
+                        theActivity.tv_msg.text = EMPTY
+//                        theActivity.tv_person.text = EMPTY
 
                     }
                     R.id.state_succ -> {
@@ -305,7 +312,6 @@ internal class MessageHandler(activity: CameraPreviewActivity) : Handler() {
                     }
                     R.id.state_progress -> {
                         theActivity!!.tv_msg.text = "已采集图像：$count"
-                        theActivity!!.tv_msg.visibility = View.VISIBLE
                     }
                 }
 
@@ -316,8 +322,8 @@ internal class MessageHandler(activity: CameraPreviewActivity) : Handler() {
                     R.id.state_start -> {
                         theActivity!!.captureThread.detectorType = R.id.what_idle
 //                        theActivity.tv_mode.text = "facenet_validate"
-                        theActivity.tv_msg.visibility = View.INVISIBLE
-                        theActivity.tv_person.visibility = View.INVISIBLE
+                        theActivity.tv_msg.text = EMPTY
+                        theActivity.tv_person.text = EMPTY
                         theActivity.pd = ProgressDialog.show(theActivity, "facenet_validate", theActivity.getString(R.string.facenet_validate_start))
                         theActivity.tv_hint.setText(R.string.facenet_validate_start)
                     }
@@ -327,10 +333,12 @@ internal class MessageHandler(activity: CameraPreviewActivity) : Handler() {
                         theActivity.captureThread.detectorType = R.id.what_facenet_identify
                         Toast.makeText(theActivity, "注册成功", Toast.LENGTH_LONG).show()
 
+
                     }
                     R.id.state_fail -> {
-                        pd.dismiss()
-                        theActivity!!.tv_hint.setText(R.string.facenet_validate_fail)
+//                        pd.dismiss()
+                        theActivity!!.pd.dismiss()
+                        theActivity.tv_hint.setText(R.string.facenet_validate_fail)
                         theActivity.captureThread.detectorType = R.id.what_facenet_identify
                         Toast.makeText(theActivity, "注册失败", Toast.LENGTH_LONG).show()
 
@@ -344,7 +352,7 @@ internal class MessageHandler(activity: CameraPreviewActivity) : Handler() {
             R.id.what_clear_text -> {
                 theActivity!!.tv_person.text = EMPTY
                 theActivity.tv_hint.setText(R.string.hint)
-                theActivity.draw.clear()
+                theActivity.surfaceView.clear()
             }
 
 
@@ -357,7 +365,7 @@ internal class MessageHandler(activity: CameraPreviewActivity) : Handler() {
     companion object {
         private val TAG = MessageHandler::class.java.simpleName
 
-        private const val MAX_UNKNOWN_COUNT = 10
+        private const val MAX_UNKNOWN_COUNT = 6
         private const val UNKNOWN_NAME = "Unknown"
         private const val EMPTY_WEIGHT = 0.0
         private const val EMPTY = ""

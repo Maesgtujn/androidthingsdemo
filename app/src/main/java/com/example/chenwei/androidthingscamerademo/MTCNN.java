@@ -17,12 +17,12 @@ import java.util.Vector;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 
-public class MTCNN {
+class MTCNN {
     //参数
     private float factor=0.709f;
-    private float PNetThreshold=0.6f;
-    private float RNetThreshold=0.7f;
-    private float ONetThreshold=0.7f;
+    private final float PNetThreshold=0.6f;
+    private final float RNetThreshold=0.7f;
+    private final float ONetThreshold=0.7f;
     //MODEL PATH
     private static final String MODEL_FILE  = "file:///android_asset/mtcnn_freezed_model.pb";
     //tensor name
@@ -33,9 +33,9 @@ public class MTCNN {
     private static final String ONetInName  ="onet/input:0";
     private static final String[] ONetOutName =new String[]{ "onet/prob1:0","onet/conv6-2/conv6-2:0","onet/conv6-3/conv6-3:0"};
     //安卓相关
-    public  long lastProcessTime;   //最后一张图片处理的时间ms
+    private long lastProcessTime;   //最后一张图片处理的时间ms
     private static final String TAG= MTCNN.class.getSimpleName();
-    private AssetManager assetManager;
+    private final AssetManager assetManager;
     private TensorFlowInferenceInterface inferenceInterface;
     MTCNN(AssetManager mgr){
         assetManager=mgr;
@@ -80,9 +80,8 @@ public class MTCNN {
         Matrix matrix = new Matrix();
         // RESIZE THE BIT MAP
         matrix.postScale(scale, scale);
-        Bitmap resizedBitmap = Bitmap.createBitmap(
+        return Bitmap.createBitmap(
                 bm, 0, 0, width, height, matrix, true);
-        return resizedBitmap;
     }
     //输入前要翻转，输出也要翻转
     private  int PNetForward(Bitmap bitmap, float [][]PNetOutProb, float[][][]PNetOutBias){

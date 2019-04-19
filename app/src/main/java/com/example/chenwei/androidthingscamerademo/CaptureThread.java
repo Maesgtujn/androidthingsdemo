@@ -8,6 +8,7 @@ import android.view.TextureView;
 
 import java.util.ArrayList;
 import java.util.Vector;
+import java.util.concurrent.atomic.AtomicInteger;
 
 
 import static com.example.chenwei.androidthingscamerademo.StaticValues.ACTION_TYPE_identify_no_mtcnn;
@@ -23,15 +24,15 @@ import static com.example.chenwei.androidthingscamerademo.Utils.sendMessage;
 public class CaptureThread extends Thread {
     private final static String TAG = "CaptureThread";
 
-    private Handler mHandler;
-    private WebSocketHelper wsHelper;
-    private MTCNN mtcnn;
+    private final Handler mHandler;
+    private final WebSocketHelper wsHelper;
+    private final MTCNN mtcnn;
 
-    private boolean continua = false;
-    private int detectorType;
+    //    private int detectorType;
+    private final AtomicInteger detectorType ;
     private int count = 0;
 
-    private TextureView mTextureView;
+    private final TextureView mTextureView;
 
     /**
      * @param context
@@ -47,7 +48,8 @@ public class CaptureThread extends Thread {
 
         mtcnn = new MTCNN(context.getAssets());
 
-        detectorType = R.id.what_idle;
+//        detectorType = R.id.what_idle;
+        detectorType = new AtomicInteger(R.id.what_idle);
     }
 
     /**
@@ -56,21 +58,23 @@ public class CaptureThread extends Thread {
      * @param type
      */
     public void setDetectorType(int type) {
-        if (detectorType != type) {
-            detectorType = type;
-            count = 0;
-        }
+//        if (detectorType != type) {
+//            detectorType = type;
+//            count = 0;
+//        }
+        detectorType.getAndSet(type);
+        count = 0;
     }
 
     public int getDetectorType() {
-        return detectorType;
+        return detectorType.get();
     }
 
     @Override
     public void run() {
         //super.run();
 
-        continua = true;
+        boolean continua = true;
 
         long t_start = System.currentTimeMillis();
         Bitmap bm, bitmap;
@@ -78,7 +82,7 @@ public class CaptureThread extends Thread {
         ArrayList<Bitmap> regBitmaps = new ArrayList<>();
         String qr_code = "";
         while (continua) {
-            if (mTextureView != null && detectorType != R.id.what_idle) {
+            if (detectorType.get() != R.id.what_idle && mTextureView != null) {
                 Log.d(TAG, "processImage:start");
 
                 bitmap = mTextureView.getBitmap();
@@ -93,9 +97,10 @@ public class CaptureThread extends Thread {
 
                 Log.d(TAG, "======== #" + frameCount + ",frameRate(f/s):" + frameRate);
                 try {
-                    int minFaceSize = 250;              // 350
 
-                    switch (detectorType) {
+                    int minFaceSize = 200;              // 350
+
+                    switch (detectorType.get()) {
                         case R.id.what_qrcode:
                             if (count == 0) {
                                 sendMessage(mHandler, R.id.what_qrcode, null, R.id.state_start, count);
@@ -106,7 +111,7 @@ public class CaptureThread extends Thread {
                                 qr_code = rawResult;
                                 Log.d(TAG, ">>>qr_code:$qr_code");
                                 sendMessage(mHandler, R.id.what_qrcode, rawResult, R.id.state_succ, count);
-                                setDetectorType(R.id.what_facenet_regadd);
+                                setDetectorType(R.id.what_facenet_register);
                             } else {
                                 Log.d(TAG, ">>>qr_code:null");
                                 if (count < 25) {
@@ -119,25 +124,39 @@ public class CaptureThread extends Thread {
                             break;
                         //  由what_weight状态变为start触发
                         case R.id.what_facenet_identify:
+                            Log.d(TAG, "what_facenet_identify");
 //                            sendMessage(mHandler, R.id.what_mtcnn, null, R.id.state_start, 0);
-
 
                             boxes = mtcnn.detectFaces(bm, minFaceSize);
                             sendMessage(mHandler, R.id.what_mtcnn, boxes, R.id.state_succ, boxes.size());
                             if (boxes.size() > 0) {
-                                ArrayList<Bitmap> bitmaps = new ArrayList<>();
+                                Bitmap alignedBitmap = null;
+
                                 //获取经MTCNN人脸检测之后产生的边框位置坐标,并添加margin后将原始图片进行裁剪,输出marginBitmap;
-                                for (int i = 0; i < boxes.size(); i++) {
-                                    bitmaps.add(getMarginBitmap(boxes.get(i), bm));
+                                if (boxes.size() == 1) {
+                                    alignedBitmap = getMarginBitmap(boxes.get(0), bm);
+                                } else {
+                                    double maxFaceArea = 0;
+                                    int index = 0;
+                                    for (int i = 0; i < boxes.size(); i++) {
+                                        double faceArea = boxes.get(i).height() * boxes.get(i).width();
+                                        if (maxFaceArea < faceArea) {
+                                            maxFaceArea = faceArea;
+                                            index = i;
+                                        }
+                                        alignedBitmap = getMarginBitmap(boxes.get(index), bm);
+
+                                    }
                                 }
+
                                 sendMessage(mHandler, R.id.what_facenet_identify, boxes, R.id.state_start, boxes.size());
-                                wsHelper.sendReq(bitmaps, ACTION_TYPE_identify_no_mtcnn, null);
+                                wsHelper.sendReq(alignedBitmap, ACTION_TYPE_identify_no_mtcnn, null);
                                 //what_facenet_identify  state_succ,在wshelper的onMessage中主动发送给 mMessageHandler
                             }
                             break;
-                        case R.id.what_facenet_regadd:
+                        case R.id.what_facenet_register:
                             if (count == 0) {
-                                sendMessage(mHandler, R.id.what_facenet_regadd, null, R.id.state_start, count);
+                                sendMessage(mHandler, R.id.what_facenet_register, null, R.id.state_start, count);
                                 regBitmaps.clear();
                             }
                             boxes = mtcnn.detectFaces(bm, minFaceSize);
@@ -145,7 +164,7 @@ public class CaptureThread extends Thread {
                             if (boxes.size() == 1) {
                                 count++;
                                 regBitmaps.add(getMarginBitmap(boxes.get(0), bm));
-                                sendMessage(mHandler, R.id.what_facenet_regadd, null, R.id.state_progress, count);
+                                sendMessage(mHandler, R.id.what_facenet_register, null, R.id.state_progress, count);
 
                                 if (regBitmaps.size() == 9) {
                                     sendMessage(mHandler, R.id.what_facenet_validate, null, R.id.state_start, regBitmaps.size());
@@ -158,7 +177,7 @@ public class CaptureThread extends Thread {
                         default:
                             Log.d(TAG, "default");
                     }
-                    Thread.sleep(100);
+                    Thread.sleep(200);
 
                 } catch (Exception e) {
                     Log.e(TAG, "[*]detect false:$e");

@@ -27,7 +27,7 @@
     <item name="what_mtcnn" type="id" />
     <item name="what_facenet_identify" type="id" />
     <item name="what_facenet_validate" type="id" />
-    <item name="what_facenet_regadd" type="id" />
+    <item name="what_facenet_register" type="id" />
     <item name="what_qrcode" type="id" />
 
     <item name="what_bt_con" type="id" />

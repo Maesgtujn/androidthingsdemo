@@ -40,7 +40,7 @@ public class Utils {
     }
 
     //在bitmap中画矩形
-    public static void drawRect(Bitmap bitmap, Rect rect) {
+    private static void drawRect(Bitmap bitmap, Rect rect) {
         try {
             Canvas canvas = new Canvas(bitmap);
             Paint paint = new Paint();

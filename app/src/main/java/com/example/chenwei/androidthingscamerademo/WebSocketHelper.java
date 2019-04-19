@@ -37,8 +37,8 @@ public class WebSocketHelper {
     private WebSocketListener webSocketListener;
     private WebSocket mWebSocket;
     private Request request;
-    private String HOST_URL;
-    private Handler mHandler;
+    private final String HOST_URL;
+    private final Handler mHandler;
 
     public WebSocketHelper(String HOST_URL, Handler mHandler) {
 
@@ -77,7 +77,7 @@ public class WebSocketHelper {
                     String action_type = jsonObject.getString("action_type");
                     if (action_type.equals(ACTION_TYPE_identify_no_mtcnn)) {
                         JSONArray jsonPersons = jsonObject.getJSONArray("data");
-
+                        Log.d(TAG, "what_facenet_identify: state_succ");
                         sendMessage(mHandler, R.id.what_facenet_identify, jsonPersons, R.id.state_succ, jsonPersons.length());
 
 
@@ -176,5 +176,37 @@ public class WebSocketHelper {
             e.printStackTrace();
         }
     }
+
+    public void sendReq(Bitmap bitmap, String actionType, String name) {
+        try {
+            JSONObject jsonObject = new JSONObject();
+//设定API通道
+            jsonObject.put("action_type", actionType);
+
+            if (name != null) {
+                jsonObject.put("name", name);
+
+            }
+//请求id用来匹配发送请求和返回信息
+            jsonObject.put("req_id", System.currentTimeMillis());
+//多个人脸数据按Base64编码为String
+            JSONArray jsonArray = new JSONArray();
+            String b64Img = Utils.bitmapToBase64(bitmap);
+            jsonArray.put(b64Img);
+            jsonObject.put("data", jsonArray);
+
+            String jsonRequest = jsonObject.toString();
+            Log.d(TAG, "jsonRequest:" + jsonRequest);
+            try {
+//                返回数据将在mWebSocket.onMessage获得如果需要和请求匹配，则依据req_id即可
+                mWebSocket.send(jsonRequest);
+            } catch (NullPointerException e) {
+                e.printStackTrace();
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
 
 }

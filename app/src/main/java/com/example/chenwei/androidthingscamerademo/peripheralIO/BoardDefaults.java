@@ -6,7 +6,7 @@ package com.example.chenwei.androidthingscamerademo.peripheralIO;
  * @
  * @date 18-10-8
  */
-public class BoardDefaults {
+class BoardDefaults {
 
     private static final String BUZZER_PIN = "PWM1";
     private static final String LED_PIN = "BCM6";

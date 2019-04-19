@@ -10,13 +10,13 @@ import android.graphics.Rect;
 import static java.lang.Math.max;
 
 public class Box {
-    public  int[] box;       //left:box[0],top:box[1],right:box[2],bottom:box[3]
+    public  final int[] box;       //left:box[0],top:box[1],right:box[2],bottom:box[3]
     public  float score;    //probability
-    public  float[] bbr;    //bounding box regression
+    public  final float[] bbr;    //bounding box regression
     public  boolean deleted;
-    public  Point[] landmark; //facial landmark.只有ONet输出Landmark
+    public  final Point[] landmark; //facial landmark.只有ONet输出Landmark
 
-    public static final int margin = 32;
+    private static final int margin = 32;
     public int marginLeft() {
         return Math.max(box[0] - margin / 2, 0);
     }
@@ -54,7 +54,7 @@ public class Box {
         return  rect;
     }
     //面积
-    public  int area(){
+    public int area(){
         return width()*height();
     }
     //Bounding Box Regression

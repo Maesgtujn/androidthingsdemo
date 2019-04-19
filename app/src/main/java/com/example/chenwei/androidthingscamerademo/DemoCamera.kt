@@ -198,6 +198,10 @@ class DemoCamera(private val mBackgroundHandler: Handler, private val mTextureVi
                 } else {
                     mTextureView.setAspectRatio(mPreviewSize!!.height, mPreviewSize!!.width)
                 }
+//                val matrix = Matrix()
+//                matrix.setScale((-1).toFloat(), 1.toFloat())
+//                matrix.postTranslate(width.toFloat(), 0.toFloat())
+//                mTextureView.setTransform(matrix)
             }
 
             mFlashSupported = characteristics.get(CameraCharacteristics.FLASH_INFO_AVAILABLE) ?: false
@@ -245,10 +249,17 @@ class DemoCamera(private val mBackgroundHandler: Handler, private val mTextureVi
             val scale = Math.max(viewHeight.toFloat() / mPreviewSize!!.height, viewWidth.toFloat() / mPreviewSize!!.width)
             matrix.postScale(scale, scale, centerX, centerY)
             matrix.postRotate(90 * (rotation - 2).toFloat(), centerX, centerY)
+
         } else if (Surface.ROTATION_180 == rotation) {
             matrix.postRotate(180F, centerX, centerY)
+
         }
+        matrix.postScale((-1).toFloat(), 1.toFloat())
+        matrix.postTranslate(viewWidth.toFloat(), 0.toFloat())
+        Log.d(TAG, "Flipping the preview")
+
         mTextureView.setTransform(matrix)
+
         Log.d(TAG, "End configureTransform")
     }
 

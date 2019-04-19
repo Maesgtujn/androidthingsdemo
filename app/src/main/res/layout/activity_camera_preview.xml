@@ -24,10 +24,10 @@
             android:layout_marginEnd="30sp"
             android:layout_marginStart="10sp"
             android:layout_marginTop="20sp"
-            android:letterSpacing="0.2"
+
             android:text="@string/hint"
             android:textColor="@android:color/white"
-
+            android:typeface="sans"
             android:textSize="50sp"
 
             android:textStyle="bold"
@@ -79,12 +79,6 @@
                     android:textColor="#BBDEFB"/>
             </LinearLayout>
 
-            <!--<TextView-->
-                <!--android:id="@+id/tv_mode"-->
-                <!--android:layout_width="match_parent"-->
-                <!--android:layout_height="wrap_content"-->
-                <!--android:text="@string/mode" />-->
-
         </LinearLayout>
     </LinearLayout>
 
@@ -92,36 +86,34 @@
     <android.support.constraint.ConstraintLayout
         android:layout_width="0dp"
         android:layout_height="0dp"
+        android:background="#2196F3"
         app:layout_constraintBottom_toTopOf="@+id/BottomBarLayout"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/TopBarLayout"
-        app:layout_constraintVertical_bias="1.0"
-        android:background="#2196F3">
+        app:layout_constraintVertical_bias="1.0">
 
         <com.example.chenwei.androidthingscamerademo.AutoFitTextureView
-            android:id="@+id/texture"
+            android:id="@+id/textureView"
             android:layout_width="480dp"
             android:layout_height="270dp"
-
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
         <com.example.chenwei.androidthingscamerademo.SurfaceViewDraw
-            android:id="@+id/draw"
-            android:layout_width="0dp"
+            android:id="@+id/surfaceView"
 
+            app:layout_constraintBottom_toBottomOf="@+id/textureView"
+            app:layout_constraintEnd_toEndOf="@+id/textureView"
+            app:layout_constraintHorizontal_bias="1.0"
+            app:layout_constraintStart_toStartOf="@+id/textureView"
+            app:layout_constraintTop_toTopOf="@+id/textureView"
+            app:layout_constraintVertical_bias="0.0"
             android:layout_height="0dp"
-
-            app:layout_constraintBottom_toBottomOf="@+id/texture"
-            app:layout_constraintEnd_toEndOf="@+id/texture"
-            app:layout_constraintHorizontal_bias="0.0"
-            app:layout_constraintStart_toStartOf="@+id/texture"
-            app:layout_constraintTop_toTopOf="@+id/texture"
-            app:layout_constraintVertical_bias="0.0" />
+            android:layout_width="0dp" />
     </android.support.constraint.ConstraintLayout>
 
     <android.support.constraint.ConstraintLayout
@@ -131,7 +123,8 @@
         android:layout_height="wrap_content"
         android:background="#FFFFFF"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent">
+        app:layout_constraintStart_toStartOf="parent"
+        >
 
         <TextView
             android:id="@+id/tv_msg"
@@ -143,17 +136,6 @@
             android:layout_marginTop="8dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-        <TextView
-            android:id="@+id/tv_person"
-            style="@style/ResultText"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:visibility="visible"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="@+id/kg_string"
-            app:layout_constraintStart_toEndOf="@+id/tv_msg"
             app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
@@ -178,9 +160,23 @@
             android:layout_marginTop="8dp"
             android:text="@string/kg"
             android:textColor="#757575"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            style="@style/ResultText"
+            android:id="@+id/tv_person"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
             android:visibility="visible"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
     </android.support.constraint.ConstraintLayout>

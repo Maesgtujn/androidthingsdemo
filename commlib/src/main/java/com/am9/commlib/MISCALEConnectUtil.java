@@ -95,7 +95,7 @@ public class MISCALEConnectUtil {
                 .setDeviceName(true, names)   // 只扫描指定广播名的设备，可选
 
                 .setAutoConnect(isAutoConnect)      // 连接时的autoConnect参数，可选，默认false
-                .setScanTimeOut(10000)              // 扫描超时时间，可选，默认10秒
+                .setScanTimeOut(60000)              // 扫描超时时间，可选，默认10秒
                 .build();
         BleManager.getInstance().initScanRule(scanRuleConfig);
 

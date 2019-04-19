@@ -3,7 +3,7 @@
     <string name="qrcode_start">请将员工卡二维码放入扫描框中</string>
     <string name="qrcode_succ">二维码扫描成功</string>
     <string name="qrcode_fail">二维码多次扫描失败</string>
-    <string name="qrcode_progress"> 二维码扫描已尝试(次)</string>
+    <string name="qrcode_progress"> 扫描已尝试</string>
 
     <string name="facenet_identify_start">人脸识别中</string>
     <string name="facenet_identify_succ">人脸识别成功</string>
@@ -27,18 +27,12 @@
     <string name="disconnected">未连接</string>
     <string name="hint">尝试站在体重秤上</string>
 
-    <string name="mode_idle">等待中</string>
-    <string name="mode_face_idtf">人脸检测</string>
     <string name="ws">ws:</string>
-    <string name="mode">mode</string>
+
     <string name="tv_ws">tv_ws</string>
     <string name="tv_bt">tv_bt</string>
     <string name="bt">bt:</string>
     <string name="kg">kg</string>
-
-    <string name="desc">picture</string>
-    <string name="qr_code">二维码/条码</string>
-    <string name="qrcode_string">qrcode</string>
 
 
 </resources>

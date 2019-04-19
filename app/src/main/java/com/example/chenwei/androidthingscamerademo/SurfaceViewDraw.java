@@ -19,7 +19,7 @@ public class SurfaceViewDraw extends SurfaceView implements SurfaceHolder.Callba
     /*  mark the thread state */
     private boolean mIsDrawing;
 //    private int x = 0, y = 0;
-    private Paint mPaint,mPaint2;
+    private final Paint mPaint,mPaint2;
     public SurfaceViewDraw(Context context){
         this(context, null);
     }
@@ -123,13 +123,28 @@ public class SurfaceViewDraw extends SurfaceView implements SurfaceHolder.Callba
             }
         }
     }
+
+    /**
+     * 识别框{@code rect}镜像反转
+     * @param rect
+     * @return
+     */
+    private Rect flipping(Rect rect){
+        Rect rect1 = new Rect();
+        rect1.left = mCanvas.getWidth() - rect.right;
+        rect1.right = mCanvas.getWidth() - rect.left;
+        rect1.top =rect.top;
+        rect1.bottom = rect.bottom;
+        return rect1;
+    }
     public void draw(Vector<Box> boxes) {
         try {
             mCanvas = mSurfaceHolder.lockCanvas();
             /* draw background and clear the previous frame */
             mCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
             for(Box box :boxes){
-                Rect rect = box.transform2Rect();
+                Rect rect = flipping(box.transform2Rect());
+//                Rect rect = box.transform2Rect();
                 mCanvas.drawRect(rect, mPaint);
 
                 //mCanvas.drawText(" " + box.area(), rect.left, rect.top + mPaint.getTextSize(), mPaint);
@@ -144,16 +159,17 @@ public class SurfaceViewDraw extends SurfaceView implements SurfaceHolder.Callba
         }
     }
 
+
     public void drawRectQR() {
         try {
             mCanvas = mSurfaceHolder.lockCanvas();
             float crop=0.7f;
             int edge = (int) (Math.min(mCanvas.getHeight(),mCanvas.getWidth())*crop);
-            int top = (int) (mCanvas.getHeight()-edge)/2;
-            int bottom = (int) (mCanvas.getHeight()+edge)/2;
-            int left = (int) (mCanvas.getWidth()-edge)/2;
+            int top = (mCanvas.getHeight()-edge) /2;
+            int bottom = (mCanvas.getHeight()+edge) /2;
+            int left = (mCanvas.getWidth()-edge) /2;
 
-            int right =(int) (mCanvas.getWidth()+edge)/2;
+            int right = (mCanvas.getWidth()+edge) /2;
 
 
             Rect rect = new Rect(left,top,right,bottom);
