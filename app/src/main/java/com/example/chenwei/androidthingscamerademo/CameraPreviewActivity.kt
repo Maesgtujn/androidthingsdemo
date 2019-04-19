@@ -15,7 +15,6 @@ import android.view.TextureView
 import com.am9.commlib.MISCALEConnectUtil
 import com.am9.commlib.MISCALEConnectUtil.convertToWeight
 import com.am9.commlib.MISCALEConnectUtil.getWeightState
-import com.am9.commlib.OpenBlueTask
 import com.clj.fastble.BleManager
 import com.clj.fastble.callback.BleGattCallback
 import com.clj.fastble.callback.BleNotifyCallback
@@ -23,18 +22,14 @@ import com.clj.fastble.callback.BleScanCallback
 import com.clj.fastble.data.BleDevice
 import com.clj.fastble.exception.BleException
 import com.example.chenwei.androidthingscamerademo.Utils.sendMessage
-import com.example.chenwei.androidthingscamerademo.peripheralIO.PeripheralHelper
 import kotlinx.android.synthetic.main.activity_camera_preview.*
 import okhttp3.*
 
 import org.json.JSONArray
 import org.json.JSONException
 import java.io.IOException
-import java.net.URL
+
 import java.util.*
-import java.util.concurrent.Callable
-import java.util.concurrent.Executors
-import java.util.concurrent.FutureTask
 import java.util.concurrent.TimeUnit
 import android.widget.Button as WidgetButton
 
@@ -72,12 +67,15 @@ class CameraPreviewActivity : Activity() {
                 .readTimeout(20, TimeUnit.SECONDS).build()
 
         BleManager.getInstance().init(application)                  //  start bluetooth service
-        BleManager.getInstance().enableBluetooth()
 
         BleManager.getInstance()
                 .enableLog(true)
                 .setReConnectCount(1, 5000)
                 .setConnectOverTime(20000).operateTimeout = 5000
+
+        BleManager.getInstance().enableBluetooth()
+
+
 
         /* Initialize a handler to handle message */
         messageHandler = MessageHandler(this)
@@ -94,14 +92,14 @@ class CameraPreviewActivity : Activity() {
         super.onResume()
         Log.d(TAG, "onResume")
         startBackgroundThread()                                    //   start background camera preview thread
-        mCamera = DemoCamera(mBackgroundHandler, texture)
+        mCamera = DemoCamera(mBackgroundHandler, textureView)
 
-        if (texture.isAvailable) {
-            Log.d(TAG, "texture.isAvailable? ${texture.isAvailable}")
-            startCameraPreview(texture.width, texture.height)
+        if (textureView.isAvailable) {
+            Log.d(TAG, "texture.isAvailable? ${textureView.isAvailable}")
+            startCameraPreview(textureView.width, textureView.height)
 
         } else {
-            texture.surfaceTextureListener = mSurfaceTextureListener
+            textureView.surfaceTextureListener = mSurfaceTextureListener
         }
         // captureThread = CaptureThread(baseContext, messageHandler, texture, wsHelper)
 
@@ -118,9 +116,9 @@ class CameraPreviewActivity : Activity() {
             startScan()
         }
         //addText(txt, "OpenBlueTask")
-
-        val dTask = OpenBlueTask(this@CameraPreviewActivity, runnable)
-        dTask.execute(20)
+        runnable.run()
+//        val dTask = OpenBlueTask(this@CameraPreviewActivity, runnable)
+//        dTask.execute(20)
 
     }
 
@@ -143,8 +141,16 @@ class CameraPreviewActivity : Activity() {
             }
 
             override fun onScanFinished(scanResultList: List<BleDevice>) {
+//                Log.d(TAG, "==remain_count$remain_count")
+//                if(scanResultList.isEmpty() && remain_count>0){
+//                    startScan(remain_count-1)
+//                }
+                if (scanResultList.isEmpty()){
+                    sendMessage(messageHandler, R.id.what_bt_con, null, R.id.state_funcfail, 0)
+                }
 
             }
+
         })
     }
 
@@ -154,9 +160,10 @@ class CameraPreviewActivity : Activity() {
      *
      */
     private fun connect(bleDevice: BleDevice) {
-
+        Log.d(TAG, "BLE connect")
         BleManager.getInstance().connect(bleDevice, object : BleGattCallback() {
             override fun onStartConnect() {
+                Log.d(TAG, "BLE onStartConnect")
                 //addText(tv_msg, "connect.onStartConnect")
                 sendMessage(messageHandler, R.id.what_bt_con, bleDevice, R.id.state_start, 0)
 
@@ -298,7 +305,7 @@ class CameraPreviewActivity : Activity() {
      */
     fun initThread(context: Context) {
 
-        captureThread = CaptureThread(context, messageHandler, texture, wsHelper)
+        captureThread = CaptureThread(context, messageHandler, textureView, wsHelper)
         captureThread.start()
     }
 
@@ -336,55 +343,6 @@ class CameraPreviewActivity : Activity() {
 //        }
 //    }
 
-    fun postWeightTest(weight: Double, employeeNo: String){
-        val timeUrl = "http://www.ntsc.ac.cn"
-        val url = "http://app.mxic.com.cn:9000/ehealth/php/scales/create.php"
-
-        val request = Request.Builder()
-                .url(url)
-
-        val bodyBuilder = FormBody.Builder()
-
-        val executor = Executors.newSingleThreadExecutor()
-        val futureTask = FutureTask<String>(Callable<String>{
-            try {
-                val url = URL(timeUrl)
-                val uc = url.openConnection()
-                uc.readTimeout = 5000
-                uc.connectTimeout = 5000
-                uc.connect()
-                val calendar = Calendar.getInstance()
-                calendar.timeInMillis = uc.date
-                return@Callable calendar.timeInMillis.toString()
-            } catch (e : Exception){
-                "fail"
-            }
-
-        })
-        executor.execute(futureTask)
-        executor.execute {
-            bodyBuilder
-                    .add("type", "figure")              //  fixed mark
-                    .add("employeeNo", employeeNo)
-                    .add("date", futureTask.get())
-                    .add("weight", weight.toString())
-            request.post(bodyBuilder.build())
-            Log.d(TAG, "上传时间为: " + futureTask.get())
-
-            val call = client!!.newCall(request.build())
-            try {
-                val response = call.execute()
-                val respText = response.body().string()
-                sendMessage(messageHandler, R.id.what_postWeight, respText, 0, 0)
-                Log.d(TAG, "上传体重和工号: $respText")
-            } catch (e: IOException) {
-                e.printStackTrace()
-            }
-
-        }
-
-    }
-
 
 
     /**
@@ -403,7 +361,7 @@ class CameraPreviewActivity : Activity() {
      *
      */
     fun postWeight(weight: Double, employeeNo: String) {
-        // TODO 改用线程池编写
+
         val url = "http://app.mxic.com.cn:9000/ehealth/php/scales/create.php"
 
         val request = Request.Builder()
@@ -427,7 +385,7 @@ class CameraPreviewActivity : Activity() {
                 val respText = response.body().string()
                 sendMessage(messageHandler, R.id.what_postWeight, respText, 0, 0)
                 Log.d(TAG, "上传体重和工号: $respText")
-            } catch (e: IOException) {
+            } catch (e: Throwable) {
                 e.printStackTrace()
             }
         }).start()
@@ -438,7 +396,7 @@ class CameraPreviewActivity : Activity() {
     /**
      * Get employee name from the server through webSocket
      */
-    fun reqName(employeeNo: String, prob: Double, emotion: String) {
+    fun reqName(employeeNo: String, prob: Double) {
         val url = "http://app.mxic.com.cn:9000/ehealth/php/scales/query.php?searchtype=" +
                 "employeeNo&employeeNo=$employeeNo"
         val request = Request.Builder()
@@ -452,7 +410,7 @@ class CameraPreviewActivity : Activity() {
                 val jsonArray = JSONArray(response?.body()?.string())
                 Log.d(TAG, "getJsonArray: " + jsonArray.toString())
                 val name = jsonArray.getJSONObject(0).getString("name")
-                val text = String.format("%n %s  @ %.2f %s", name, prob, emotion)
+                val text = String.format("%s  %.2f %s", name, prob,"%")
                 sendMessage(messageHandler, R.id.what_got_uname, text, 0, 0)
             } catch (e: IOException) {
                 e.printStackTrace()
